@@ -5,6 +5,10 @@ import chisel3.util.{Enum, is, switch}
 object MemAccess {
   val DWIDTH: Int = 32
   val AWIDTH: Int = 32
+
+  val DATA1: UInt = "h1234".U
+  val DATA2: UInt = "habcd".U
+  val DATA3: UInt = "h4321".U
 }
 
 // MemAccess common Bundle
@@ -40,17 +44,25 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
     val read = new MemAccessRB(DWIDTH, AWIDTH)
     val write = new MemAccessWB(DWIDTH, AWIDTH)
     val axi_txn = Output(Bool()) // AXI bus reset
-    val out_data = Output(UInt(DWIDTH.W)) // output to another Module(debug purpose)
+//    val out_data = Output(UInt(DWIDTH.W)) // output to another Module(debug purpose)
+
+    // for debug
+    val indicator = Output(Bool())
   })
 
   // Deal with read_done signal
-  // read_done is still a confused signal
-  // Don't know whether it stands for one burst transfer or a whole transfer
   val read_done_r = RegInit(VecInit(Seq.fill(2)(false.B)))
   read_done_r(0) := io.read.done
   read_done_r(1) := read_done_r(0)
   val read_done_raise = Wire(Bool())
   read_done_raise := read_done_r(0) && !read_done_r(1)
+
+  // Define internal registers to store data
+  val rd_r = RegInit(VecInit(Seq.fill(3)(0.U(DWIDTH.W))))
+  val counter = RegInit(0.U(2.W))
+
+  // define functions
+  def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3
 
   /**
    * FSM
@@ -76,7 +88,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
       .elsewhen(io.write.extn_ready) { axi_next_state := sAXI_WRITE }
     }
     is(sAXI_READ) {
-      when(read_done_raise) { axi_next_state := sAXI_IDLE }
+      when(counter === 3.U && read_done_raise) { axi_next_state := sAXI_IDLE }
       // .elsewhen(/* finish read */) { axi_next_state := sAXI_IDLE }
     }
     // is(sAXI_WRITE) {
@@ -86,10 +98,13 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   }
   switch(axi_te_curr_state) {
     is(sAXI_FREE) {
-      when(axi_curr_state === sAXI_IDLE && axi_next_state === sAXI_READ) { axi_te_next_state := sAXI_TXN }
-      // TODO
-      // code below should consider twice
-      // .elsewhen(axi_curr_state === sAXI_READ && axi_next_state === sAXI_READ && read_done_raise) { axi_te_next_state := sAXI_TXN }
+      when(axi_curr_state === sAXI_IDLE && axi_next_state === sAXI_READ) {
+        axi_te_next_state := sAXI_TXN
+      }
+      // Another read continues
+      .elsewhen(axi_curr_state === sAXI_READ && axi_next_state === sAXI_READ && read_done_raise) {
+        axi_te_next_state := sAXI_TXN
+      }
     }
     is(sAXI_TXN) { axi_te_next_state := sAXI_EN }
     is(sAXI_EN) { axi_te_next_state := sAXI_FREE }
@@ -117,9 +132,25 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   io.read.addr := read_addr_r
 
   // io.out_data
-  val out_data_r = RegInit(0.U(DWIDTH.W))
-  when(io.read.data_valid) { out_data_r := io.read.data }
-  io.out_data := out_data_r
+//  val out_data_r = RegInit(0.U(DWIDTH.W))
+//  when(io.read.data_valid) { out_data_r := io.read.data }
+//  io.out_data := out_data_r
+
+  // rd_r
+  when(io.read.data_valid) {
+    rd_r(counter) := io.read.data
+  }
+
+  // counter
+  when(axi_te_curr_state === sAXI_FREE && axi_te_next_state === sAXI_TXN) {
+    counter := counter + 1.U
+  }
+  when(axi_curr_state === sAXI_READ && axi_next_state === sAXI_IDLE) {
+    counter := 0.U
+  }
+
+  // indicator
+  io.indicator := test()
 
   io.write := DontCare // Don't care about write signals
 }
