@@ -1,0 +1,10 @@
+*
+*/*
+!*/
+
+.idea
+.bsp
+/target/
+
+!build.sbt
+!*.scala
