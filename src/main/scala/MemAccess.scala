@@ -60,6 +60,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   // Define internal registers to store data
   val rd_r = RegInit(VecInit(Seq.fill(3)(0.U(DWIDTH.W))))
   val counter = RegInit(0.U(2.W))
+  val triggered = RegInit(false.B)
 
   // define functions
   def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3
@@ -84,7 +85,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   // 2. next state change in combinatorial logic circuit
   switch(axi_curr_state) {
     is(sAXI_IDLE) {
-      when(io.read.extn_ready) { axi_next_state := sAXI_READ }
+      when(io.read.extn_ready && !triggered) { axi_next_state := sAXI_READ }
       .elsewhen(io.write.extn_ready) { axi_next_state := sAXI_WRITE }
     }
     is(sAXI_READ) {
@@ -147,6 +148,11 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   }
   when(axi_curr_state === sAXI_READ && axi_next_state === sAXI_IDLE) {
     counter := 0.U
+  }
+
+  // triggered
+  when(axi_curr_state === sAXI_READ) {
+    triggered := true.B
   }
 
   // indicator
