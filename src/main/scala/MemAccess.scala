@@ -85,7 +85,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   // 2. next state change in combinatorial logic circuit
   switch(axi_curr_state) {
     is(sAXI_IDLE) {
-      when(io.read.extn_ready && !triggered) { axi_next_state := sAXI_READ }
+      when(!io.read.extn_ready && !triggered) { axi_next_state := sAXI_READ }
       .elsewhen(io.write.extn_ready) { axi_next_state := sAXI_WRITE }
     }
     is(sAXI_READ) {

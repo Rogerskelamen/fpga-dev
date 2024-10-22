@@ -1,3 +1,4 @@
+import chisel3.emitVerilog
 import circt.stage._
 
 object Elaborate extends App {
@@ -8,10 +9,16 @@ object Elaborate extends App {
     chisel3.stage.ChiselGeneratorAnnotation(() => top),
     CIRCTTargetAnnotation(CIRCTTarget.Verilog)
   )
-  val firtoolOptins = Seq(
+  val firtoolOptions = Seq(
+    FirtoolOption(
+      "--lowering-options=disallowLocalVariables" // for Vivado
+//        + ",locationInfoStyle=wrapInAtSquareBracket" // for verilator
+        + ",disallowPortDeclSharing,emitWireInPorts,emitBindComments"
+        + ",disallowPackedArrays"
+    ),
     FirtoolOption("--disable-all-randomization")
   )
 
-  val executeOptions = chiselStageOptins ++ firtoolOptins
+  val executeOptions = chiselStageOptins ++ firtoolOptions
   (new ChiselStage).execute(args, executeOptions)
 }
