@@ -10,11 +10,12 @@ object Elaborate extends App {
     CIRCTTargetAnnotation(CIRCTTarget.Verilog)
   )
   val firtoolOptions = Seq(
+    // For all lowering options, see https://github.com/llvm/circt/blob/main/include/circt/Support/LoweringOptions.h
     FirtoolOption(
       "--lowering-options=disallowLocalVariables" // for Vivado
 //        + ",locationInfoStyle=wrapInAtSquareBracket" // for verilator
-        + ",disallowPortDeclSharing,emitWireInPorts,emitBindComments"
-        + ",disallowPackedArrays"
+        + ",disallowPortDeclSharing,emitWireInPorts,emitBindComments,omitVersionComment"
+        + ",disallowPackedArrays" // for Yosys
     ),
     FirtoolOption("--disable-all-randomization")
   )
