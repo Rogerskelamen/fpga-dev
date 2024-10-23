@@ -90,7 +90,8 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
     }
     is(sAXI_READ) {
       when(counter === 3.U && read_done_raise) { axi_next_state := sAXI_IDLE }
-      // .elsewhen(/* finish read */) { axi_next_state := sAXI_IDLE }
+      // Line below is necessary cause axi_next_state is sAXI_IDLE by default
+      .otherwise { axi_next_state := sAXI_READ }
     }
     // is(sAXI_WRITE) {
     //   when(/* jump to read */) { axi_next_state := sAXI_READ }
@@ -118,11 +119,13 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   // io.axi_txn
   val axi_txn_r = RegInit(false.B)
   when(axi_te_curr_state === sAXI_TXN) { axi_txn_r := true.B }
+  .otherwise { axi_txn_r := false.B }
   io.axi_txn := axi_txn_r
 
   // io.read.en
   val read_en_r = RegInit(false.B)
   when(axi_curr_state === sAXI_READ && axi_te_curr_state === sAXI_EN) { read_en_r := true.B }
+  .otherwise { read_en_r := false.B }
   io.read.en := read_en_r
 
   // io.read.addr
@@ -156,7 +159,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   }
 
   // indicator
-  io.indicator := test()
+  io.indicator := triggered
 
   io.write := DontCare // Don't care about write signals
 }
