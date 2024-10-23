@@ -159,7 +159,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   }
 
   // indicator
-  io.indicator := triggered
+  io.indicator := test()
 
   io.write := DontCare // Don't care about write signals
 }
