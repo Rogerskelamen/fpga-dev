@@ -46,7 +46,6 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
     val axi_txn = Output(Bool()) // AXI bus reset
 //    val out_data = Output(UInt(DWIDTH.W)) // output to another Module(debug purpose)
 
-    // for debug
     val indicator = Output(Bool())
   })
 
@@ -89,7 +88,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
       .elsewhen(io.write.extn_ready) { axi_next_state := sAXI_WRITE }
     }
     is(sAXI_READ) {
-      when(counter === 3.U && read_done_raise) { axi_next_state := sAXI_IDLE }
+      when(counter >= 2.U && read_done_raise) { axi_next_state := sAXI_IDLE }
       // Line below is necessary cause axi_next_state is sAXI_IDLE by default
       .otherwise { axi_next_state := sAXI_READ }
     }
@@ -146,7 +145,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
   }
 
   // counter
-  when(axi_te_curr_state === sAXI_FREE && axi_te_next_state === sAXI_TXN) {
+  when(axi_curr_state === sAXI_READ && read_done_raise) {
     counter := counter + 1.U
   }
   when(axi_curr_state === sAXI_READ && axi_next_state === sAXI_IDLE) {
