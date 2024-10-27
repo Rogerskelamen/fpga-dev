@@ -1,8 +1,9 @@
 import chisel3.emitVerilog
 import circt.stage._
+import component.UartRec
 
 object Elaborate extends App {
-  def top = new MemAccess
+  def top = new UartRec
 
   // Generate HDL in verilog format
   val chiselStageOptins = Seq(
