@@ -1,6 +1,7 @@
 import chisel3._
 import MemAccess._
 import chisel3.util.{Enum, is, switch}
+import utils.FPGAModule
 
 object MemAccess {
   val DWIDTH: Int = 32
@@ -33,12 +34,11 @@ class MemAccessWB(override val dwidth: Int, override val awidth: Int)
   extends MemAccessB(dwidth, awidth, false) with MemAcessHasEReady
 
 // Read/Write data from DDR
-class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
+class MemAccess extends FPGAModule(rstN = true) {
   // Use customized clock and reset
-  val axi_clk = IO(Input(Clock()))
-  val axi_rstn = IO(Input(Bool()))
-  override protected def implicitClock: Clock = axi_clk
-  override protected def implicitReset: Reset = (~axi_rstn).asBool
+  override protected def clkFPGAName: String = "axi_clk"
+  override protected def rstFPGAName: String = "axi_rstn"
+
   // IO ports
   val io = FlatIO(new Bundle {
     val read = new MemAccessRB(DWIDTH, AWIDTH)
@@ -46,6 +46,7 @@ class MemAccess extends RawModule with ImplicitReset with ImplicitClock {
     val axi_txn = Output(Bool()) // AXI bus reset
 //    val out_data = Output(UInt(DWIDTH.W)) // output to another Module(debug purpose)
 
+    // For debug
     val indicator = Output(Bool())
   })
 

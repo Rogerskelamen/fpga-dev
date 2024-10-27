@@ -22,5 +22,6 @@ object Elaborate extends App {
   )
 
   val executeOptions = chiselStageOptins ++ firtoolOptions
-  (new ChiselStage).execute(args, executeOptions)
+  val extraArg = Array("--target-dir", "verilog-gen")
+  (new ChiselStage).execute(args ++ extraArg, executeOptions)
 }
