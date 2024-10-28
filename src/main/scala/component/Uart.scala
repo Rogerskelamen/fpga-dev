@@ -2,7 +2,7 @@ package component
 
 import chisel3._
 import component.Uart._
-import utils.{EdgeDetector, FPGAModule}
+import utils.FPGAModule
 
 object Uart {
   val CLK_FREQ = 50000000
@@ -58,7 +58,7 @@ class UartRec extends FPGAModule(true) {
   // Store RX data
   when(rx_flag) {
     when(clk_cnt === (BPS_CNT/2).U && rx_cnt >= 1.U && rx_cnt <= 8.U) {
-      rx_data(rx_cnt-1.U) := uart_rxd_r(1)
+      rx_data := rx_data | (uart_rxd_r(1) << (rx_cnt-1.U)).asUInt
     }
   }.otherwise( rx_data := 0.U )
 
