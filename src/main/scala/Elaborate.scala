@@ -1,6 +1,5 @@
-import chisel3.emitVerilog
 import circt.stage._
-import component.UartRec
+import devices.UartRec
 
 object Elaborate extends App {
   def top = new UartRec

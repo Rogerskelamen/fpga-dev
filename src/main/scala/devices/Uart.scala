@@ -1,7 +1,7 @@
-package component
+package devices
 
 import chisel3._
-import component.Uart._
+import devices.Uart._
 import utils.FPGAModule
 
 object Uart {
