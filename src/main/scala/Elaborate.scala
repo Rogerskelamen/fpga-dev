@@ -1,8 +1,8 @@
 import circt.stage._
-import devices.UartRecv
+import devices.{Uart, UartRecv, UartTran}
 
 object Elaborate extends App {
-  def top = new UartRecv
+  def top = new Uart
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
