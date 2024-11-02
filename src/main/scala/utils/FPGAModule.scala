@@ -12,8 +12,8 @@ abstract class FPGAModule(rstN: Boolean)
   val fpga_clk = IO(Input(Clock()))
   val fpga_rst = IO(Input(Bool()))
 
-  protected def clkFPGAName: String = "fpga_clk"
-  protected def rstFPGAName: String = "fpga_rst"
+  protected def clkFPGAName: String = "clk"
+  protected def rstFPGAName: String = if (rstN) "rstn" else "rst"
 
   fpga_clk.suggestName(clkFPGAName)
   fpga_rst.suggestName(rstFPGAName)

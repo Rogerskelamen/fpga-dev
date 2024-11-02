@@ -3,6 +3,7 @@ import devices.UartRec
 
 object Elaborate extends App {
   def top = new UartRec
+  def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
   val chiselStageOptins = Seq(
@@ -22,6 +23,6 @@ object Elaborate extends App {
   )
 
   val executeOptions = chiselStageOptins ++ firtoolOptions
-  val extraArg = Array("--target-dir", "verilog-gen")
+  val extraArg = Array("--target-dir", generatDir)
   (new ChiselStage).execute(args ++ extraArg, executeOptions)
 }
