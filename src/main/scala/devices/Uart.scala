@@ -1,14 +1,16 @@
 package devices
 
 import chisel3._
+import chisel3.util.log2Up
 import devices.Uart._
 import utils.{EdgeDetector, FPGAModule}
 
 object Uart {
   val UART_BITW = 8
-  val CLK_FREQ = 50000000
+  val CLK_FREQ = 100000000
   val UART_BAUD = 115200
   final def BPS_CNT: Int = CLK_FREQ/UART_BAUD
+  final def CNT_WID: Int = log2Up(BPS_CNT)
 }
 
 class Uart extends FPGAModule(true) {
@@ -61,7 +63,7 @@ class UartRecv extends FPGAModule(true) {
 
   val rx_flag = RegInit(false.B) // when to receive
   val rx_cnt = RegInit(0.U(4.W))
-  val clk_cnt = RegInit(0.U(9.W))
+  val clk_cnt = RegInit(0.U(CNT_WID.W))
   val rx_data = RegInit(0.U(UART_BITW.W)) // cache receiving data
   // rx_flag indicates the time of receiving data
   when(start_flag) { rx_flag := true.B }
@@ -72,9 +74,7 @@ class UartRecv extends FPGAModule(true) {
   // clk_cnt records cycles to count to next bit
   when(rx_flag) {
     clk_cnt := Mux(clk_cnt < (BPS_CNT-1).U, clk_cnt + 1.U, 0.U)
-  }.otherwise {
-    clk_cnt := 0.U
-  }
+  }.otherwise { clk_cnt := 0.U }
 
   // rx_cnt counts the bit number of RX data
   when(rx_flag) {
@@ -119,7 +119,7 @@ class UartTran extends FPGAModule(true) {
   val en_flag = EdgeDetector(io.uart_en, isRaise = true)
   val tx_flag = RegInit(false.B)
   val tx_cnt = RegInit(0.U(4.W)) // maximum to 9
-  val clk_cnt = RegInit(0.U(9.W)) // depends on baud rate
+  val clk_cnt = RegInit(0.U(CNT_WID.W)) // depends on baud rate
   val tx_data = RegInit(0.U(UART_BITW.W)) // cache transmit data
 
   // rx_flag indicates the time of transmitting data
@@ -135,9 +135,7 @@ class UartTran extends FPGAModule(true) {
   // Record cycles to count to next bit
   when(tx_flag) {
     clk_cnt := Mux(clk_cnt < (BPS_CNT-1).U, clk_cnt + 1.U, 0.U)
-  }.otherwise {
-    clk_cnt := 0.U
-  }
+  }.otherwise { clk_cnt := 0.U }
 
   // Count the bit number of TX data
   when(tx_flag) {
@@ -175,16 +173,18 @@ class UartLoop extends FPGAModule(true) {
   val recv_done_flag = EdgeDetector(io.recv_done, isRaise = true)
   val tx_ready = RegInit(false.B)
 
+  val trans_en_r = RegInit(false.B)
+  val trans_data_r = RegInit(0.U(UART_BITW.W))
+  io.trans_en := trans_en_r
+  io.trans_data := trans_data_r
+
   when(recv_done_flag) {
     tx_ready := true.B
-    io.trans_en := false.B
-    io.trans_data := io.recv_data
+    trans_en_r := false.B
+    trans_data_r := io.recv_data
   }.elsewhen(!io.tx_busy && tx_ready) {
-    io.trans_en := true.B
     tx_ready := false.B
-    io.trans_data := io.recv_data
-  }.otherwise {
-    io.trans_en := false.B
-    io.trans_data := 0.U
+    trans_en_r := true.B
+    trans_data_r := io.recv_data
   }
 }
