@@ -7,7 +7,7 @@ import chisel3._
  * class FPGASubModule extends FPGAModule(true/false)
  * @param rstN
  */
-abstract class FPGAModule(rstN: Boolean)
+abstract class FPGAModule(rstN: Boolean = true)
   extends RawModule with ImplicitClock with ImplicitReset {
   val fpga_clk = IO(Input(Clock()))
   val fpga_rst = IO(Input(Bool()))

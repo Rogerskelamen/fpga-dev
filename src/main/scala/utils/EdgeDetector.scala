@@ -3,7 +3,7 @@ package utils
 import chisel3._
 
 object EdgeDetector {
-  def apply(detected: Bool, isRaise: Boolean): Bool = {
+  def apply(detected: Bool, isRaise: Boolean = true): Bool = {
     val gen = Wire(Bool())
     val sync = RegInit(VecInit(Seq.fill(2)(false.B)))
     sync(0) := detected

@@ -13,7 +13,7 @@ object Uart {
   final def CNT_WID: Int = log2Up(BPS_CNT)
 }
 
-class Uart extends FPGAModule(true) {
+class Uart extends FPGAModule {
   val io = FlatIO(new Bundle {
     val uart_rxd = Input(Bool())
     val uart_txd = Output(Bool())
@@ -42,7 +42,7 @@ class Uart extends FPGAModule(true) {
   io.uart_txd := uartTran.io.uart_txd
 }
 
-class UartRecv extends FPGAModule(true) {
+class UartRecv extends FPGAModule {
   // use customized clock and rest
   override protected def clkFPGAName: String = "sys_clk"
   override protected def rstFPGAName: String = "sys_rst_n"
@@ -103,7 +103,7 @@ class UartRecv extends FPGAModule(true) {
   }
 }
 
-class UartTran extends FPGAModule(true) {
+class UartTran extends FPGAModule {
   // use customized clock and rest
   override protected def clkFPGAName: String = "sys_clk"
   override protected def rstFPGAName: String = "sys_rst_n"
@@ -116,7 +116,7 @@ class UartTran extends FPGAModule(true) {
   })
 
   // Detect raising of uart_rxd signal
-  val en_flag = EdgeDetector(io.uart_en, isRaise = true)
+  val en_flag = EdgeDetector(io.uart_en)
   val tx_flag = RegInit(false.B)
   val tx_cnt = RegInit(0.U(4.W)) // maximum to 9
   val clk_cnt = RegInit(0.U(CNT_WID.W)) // depends on baud rate
@@ -156,7 +156,7 @@ class UartTran extends FPGAModule(true) {
   io.uart_tx_busy := tx_flag
 }
 
-class UartLoop extends FPGAModule(true) {
+class UartLoop extends FPGAModule {
   // use customized clock and rest
   override protected def clkFPGAName: String = "sys_clk"
   override protected def rstFPGAName: String = "sys_rst_n"
@@ -170,7 +170,7 @@ class UartLoop extends FPGAModule(true) {
   })
 
   // Detect raising of recv_done
-  val recv_done_flag = EdgeDetector(io.recv_done, isRaise = true)
+  val recv_done_flag = EdgeDetector(io.recv_done)
   val tx_ready = RegInit(false.B)
 
   val trans_en_r = RegInit(false.B)
