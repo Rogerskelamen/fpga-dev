@@ -34,7 +34,7 @@ class MemAccessWB(override val dwidth: Int, override val awidth: Int)
   extends MemAccessB(dwidth, awidth, false) with MemAcessHasEReady
 
 // Read/Write data from DDR
-class MemAccess extends FPGAModule(rstN = true) {
+class MemAccess extends FPGAModule {
   // Use customized clock and reset
   override protected def clkFPGAName: String = "axi_clk"
   override protected def rstFPGAName: String = "axi_rstn"

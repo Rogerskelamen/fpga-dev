@@ -4,7 +4,11 @@ import chisel3._
 import chisel3.util.Cat
 import utils.FPGAModule
 
-class RandomEmitter(val dwidth: Int) extends FPGAModule(true) {
+/**
+ * A module emits random 1/0 single bit signal
+ * @param dwidth
+ */
+class RandomEmitter(val dwidth: Int) extends Module {
   require(dwidth >= 8, "data width needs to be greater than 8")
 
   val io = FlatIO(new Bundle {
