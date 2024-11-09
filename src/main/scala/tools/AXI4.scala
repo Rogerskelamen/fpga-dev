@@ -30,7 +30,7 @@ object AXI4Parameters {
       0b110              64
       0b111              128
    */
-  val sizeBits = 3 // burst size, how many data to transfer for one burst
+  val sizeBits = 3 // burst size, the width of data for one transfer
 
   /*
    00 -> FIXED: transfer all data to the same address
