@@ -5,7 +5,7 @@ val chiselVersion = "6.2.0"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "playground",
+    name := "fpga-dev",
     libraryDependencies ++= Seq(
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "org.scalatest" %% "scalatest" % "3.2.16" % "test",

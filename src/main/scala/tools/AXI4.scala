@@ -79,10 +79,10 @@ object AXI4Parameters {
   val respBits = 2 // response type
 
   // -------- Configurable parameters of signals in AXI4 specifications ---------
-  val idBits   = 1 // transaction ID, set to 1 (don't care)
+  val idBits   = 1  // transaction ID, set to 1 (don't care)
   val addrBits = 32 // address bits
   val dataBits = 32 // data bits
-  val userBits = 1 // user signal (user defined)
+  val userBits = 1  // user signal (user defined)
 
   def CACHE_RALLOCATE  = 8.U(cacheBits.W)
   def CACHE_WALLOCATE  = 4.U(cacheBits.W)

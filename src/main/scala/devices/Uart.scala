@@ -5,6 +5,11 @@ import chisel3.util.log2Up
 import devices.Uart._
 import utils.{EdgeDetector, FPGAModule}
 
+/**
+ * Attributes:
+ * - No-parity
+ * - 1 bit stop
+ */
 object Uart {
   val UART_BITW = 8
   val CLK_FREQ = 100000000
