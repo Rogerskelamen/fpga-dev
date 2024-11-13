@@ -19,7 +19,8 @@ case class UartConfig(
   baudRate: Int = 115200,
   oddParity: Boolean = false,
   evenParity: Boolean = false,
-  stopWidth: Int = 1) {
+  stopWidth: Int = 1,
+  rstN: Boolean = true) {
   final def BPS_CNT: Int = clkFreq/baudRate
   final def CNT_WID: Int = log2Up(BPS_CNT)
   final def hasParity: Boolean = oddParity | evenParity
@@ -41,9 +42,10 @@ case class UartConfig(
  * output [7:0] uart_data
  */
 class UartRecv(val conf: UartConfig = UartConfig())
-  extends FPGAModule {
+  extends FPGAModule(conf.rstN) {
   // check violation
   require(!(conf.oddParity & conf.evenParity), "Only one parity type is allowed")
+  require(conf.stopWidth == 1 || conf.stopWidth == 2, "Stop bit width can only be one or two, no other options")
 
   // use customized clock and rest
   override protected def clkFPGAName: String = "sys_clk"
@@ -120,9 +122,10 @@ class UartRecv(val conf: UartConfig = UartConfig())
  * output uart_tx_busy
  */
 class UartTran(val conf: UartConfig = UartConfig())
-  extends FPGAModule {
+  extends FPGAModule(conf.rstN) {
   // check violation
   require(!(conf.oddParity & conf.evenParity), "Only one parity type is allowed")
+  require(conf.stopWidth == 1 || conf.stopWidth == 2, "Stop bit width can only be one or two, no other options")
 
   // use customized clock and rest
   override protected def clkFPGAName: String = "sys_clk"
