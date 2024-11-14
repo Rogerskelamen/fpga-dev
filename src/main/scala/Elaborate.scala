@@ -1,4 +1,4 @@
-import app.{UartLoopTop, UartTxOnly}
+import app.uart.{UartLoopTop, UartTxOnly}
 import circt.stage._
 
 object Elaborate extends App {

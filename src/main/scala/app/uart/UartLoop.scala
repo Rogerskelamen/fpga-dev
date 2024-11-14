@@ -1,8 +1,8 @@
-package app
+package app.uart
 
 import chisel3._
 import devices.Uart.UART_BITW
-import devices.{UartConfig, UartRecv, UartTran}
+import devices.{UartRecv, UartTran}
 import utils.{EdgeDetector, FPGAModule}
 
 class UartLoop extends FPGAModule {

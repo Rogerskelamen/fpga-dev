@@ -1,7 +1,7 @@
-package app
+package app.uart
 
 import chisel3._
-import devices.{UartConfig, UartTran}
+import devices.UartTran
 import utils.FPGAModule
 
 object UartTxOnly {
