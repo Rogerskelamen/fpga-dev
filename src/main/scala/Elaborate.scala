@@ -1,8 +1,8 @@
-import app.uart.{UartLoopTop, UartTxOnly}
+import app.led.RollingLED
 import circt.stage._
 
 object Elaborate extends App {
-  def top = new UartLoopTop
+  def top = new RollingLED
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
