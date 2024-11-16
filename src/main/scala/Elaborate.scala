@@ -1,8 +1,8 @@
-import app.led.RollingLED
+import app.led.LEDChaser
 import circt.stage._
 
 object Elaborate extends App {
-  def top = new RollingLED
+  def top = new LEDChaser
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
