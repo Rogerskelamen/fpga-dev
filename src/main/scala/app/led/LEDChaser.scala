@@ -4,16 +4,16 @@ import chisel3._
 import chisel3.util.Counter
 import utils.FPGAModule
 
-object RollingLED {
+object LEDChaser {
   val FREQ = 100000000
 }
 
-class RollingLED extends FPGAModule {
+class LEDChaser extends FPGAModule {
   val io = FlatIO(new Bundle {
     val led_out = Output(Vec(4, Bool()))
   })
 
-  import RollingLED._
+  import LEDChaser._
   val (cnt, cnt_wrap) = Counter(true.B, FREQ/2)
   val (led_cnt, _) = Counter(cnt_wrap, 4)
 
