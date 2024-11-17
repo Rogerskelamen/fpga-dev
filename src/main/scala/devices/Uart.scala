@@ -1,7 +1,7 @@
 package devices
 
 import chisel3._
-import chisel3.util.log2Up
+import chisel3.util.unsignedBitLength
 import devices.Uart._
 import utils.{EdgeDetector, FPGAModule}
 
@@ -22,7 +22,7 @@ case class UartConfig(
   stopWidth: Int = 1,
   rstN: Boolean = true) {
   final def BPS_CNT: Int = clkFreq/baudRate
-  final def CNT_WID: Int = log2Up(BPS_CNT)
+  final def CNT_LEN: Int = unsignedBitLength(BPS_CNT)
   final def hasParity: Boolean = oddParity | evenParity
   final def BIT_LEN: Int =
     if (hasParity)
@@ -67,7 +67,7 @@ class UartRecv(val conf: UartConfig = UartConfig())
 
   val rx_flag = RegInit(false.B) // when to receive
   val rx_cnt = RegInit(0.U(4.W))
-  val clk_cnt = RegInit(0.U(conf.CNT_WID.W))
+  val clk_cnt = RegInit(0.U(conf.CNT_LEN.W))
   val rx_data = RegInit(0.U(UART_BITW.W)) // cache receiving data
 
   // rx_flag indicates the time of receiving data
@@ -143,7 +143,7 @@ class UartTran(val conf: UartConfig = UartConfig())
   val en_flag = EdgeDetector(io.uart_en)
   val tx_flag = RegInit(false.B)
   val tx_cnt = RegInit(0.U(4.W)) // maximum to 9
-  val clk_cnt = RegInit(0.U(conf.CNT_WID.W)) // depends on baud rate
+  val clk_cnt = RegInit(0.U(conf.CNT_LEN.W)) // depends on baud rate
   val tx_data = RegInit(0.U(UART_BITW.W)) // cache transmit data
 
   // rx_flag indicates the time of transmitting data
