@@ -15,7 +15,7 @@ object Uart {
 }
 
 case class UartConfig(
-  clkFreq: Int = 100000000,
+  clkFreq: Int = 100_000_000, // unit: Hz
   baudRate: Int = 115200,
   oddParity: Boolean = false,
   evenParity: Boolean = false,

@@ -1,8 +1,8 @@
-import app.led.LEDChaser
+import app.led.PulseLight
 import circt.stage._
 
 object Elaborate extends App {
-  def top = new LEDChaser
+  def top = new PulseLight
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format

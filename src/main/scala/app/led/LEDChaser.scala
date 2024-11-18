@@ -5,7 +5,7 @@ import chisel3.util.Counter
 import utils.FPGAModule
 
 object LEDChaser {
-  val FREQ = 100000000
+  val FREQ = 100_000_000
 }
 
 class LEDChaser extends FPGAModule {
