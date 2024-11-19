@@ -11,9 +11,12 @@ object DownCounter {
     require(n >= 2, "n needs to be greater than 2")
     val MAX = (n - 2).S
     val gen = RegInit(MAX)
-    when(gen.head(1).asBool) {
-      gen := MAX
-    }.otherwise { gen := gen - 1.S }
+    when(cond) {
+      gen := Mux(gen.head(1).asBool, MAX, gen - 1.S)
+    }
     gen.head(1).asBool
+  }
+  def apply(n: Int): Bool = {
+    DownCounter(true.B, n)
   }
 }

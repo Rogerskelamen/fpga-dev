@@ -14,7 +14,7 @@ object Elaborate extends App {
     // For all lowering options, see https://github.com/llvm/circt/blob/main/include/circt/Support/LoweringOptions.h
     FirtoolOption(
       "--lowering-options=disallowLocalVariables" // for common verilog
-//        + ",locationInfoStyle=wrapInAtSquareBracket" // for verilator
+     // + ",locationInfoStyle=wrapInAtSquareBracket" // for verilator
         + ",disallowPortDeclSharing,emitWireInPorts,emitBindComments,omitVersionComment"
         + ",mitigateVivadoArrayIndexConstPropBug" // for Vivado
         + ",disallowPackedArrays" // for Yosys
