@@ -4,6 +4,7 @@
 
 .idea
 .bsp
+.metals
 /verilog-gen/
 /target/
 

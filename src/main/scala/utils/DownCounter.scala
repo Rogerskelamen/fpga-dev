@@ -1,15 +1,15 @@
 package utils
 
 import chisel3._
-import chisel3.util.signedBitLength
 
 /**
  * A better Counter(with less Area)
+ * Activate a signal for every n cycles
  */
 object DownCounter {
   def apply(cond: Bool, n: Int): Bool = {
+    require(n >= 2, "n needs to be greater than 2")
     val MAX = (n - 2).S
-//    val MAX = (n - 2).S(signedBitLength(n-2).W)
     val gen = RegInit(MAX)
     when(gen.head(1).asBool) {
       gen := MAX
