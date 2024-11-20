@@ -7,6 +7,11 @@
 .metals
 /verilog-gen/
 /target/
+/build/
 
 !build.sbt
 !*.scala
+!*.cpp
+!*.cc
+!Makefile
+!.gtkwave.config

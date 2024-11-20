@@ -1,8 +1,18 @@
 import app.led.PulseLight
 import circt.stage._
 
+import chisel3._
+import utils.DownCounter
+
+class DownCounterGen(val n: Int) extends Module {
+  val io = IO(new Bundle {
+    val wrap = Output(Bool())
+  })
+  io.wrap := DownCounter(n)
+}
+
 object Elaborate extends App {
-  def top = new PulseLight
+  def top = new DownCounterGen(8)
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
