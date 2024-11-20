@@ -20,3 +20,11 @@ object DownCounter {
     DownCounter(true.B, n)
   }
 }
+
+// For test purpose
+class DownCounterGen(val n: Int) extends Module {
+  val io = IO(new Bundle {
+    val wrap = Output(Bool())
+  })
+  io.wrap := DownCounter(n)
+}

@@ -1,15 +1,5 @@
-import app.led.PulseLight
 import circt.stage._
-
-import chisel3._
-import utils.DownCounter
-
-class DownCounterGen(val n: Int) extends Module {
-  val io = IO(new Bundle {
-    val wrap = Output(Bool())
-  })
-  io.wrap := DownCounter(n)
-}
+import utils.DownCounterGen
 
 object Elaborate extends App {
   def top = new DownCounterGen(8)
