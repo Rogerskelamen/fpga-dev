@@ -33,4 +33,4 @@ $(BIN): $(TARGET) $(SRC)
 		--exe --Mdir $(BUILD_DIR)/obj_dir -o $(abspath $(BIN))
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR) $(WAVEFILE)
