@@ -23,6 +23,6 @@ object Elaborate extends App {
   )
 
   val executeOptions = chiselStageOptins ++ firtoolOptions
-  val extraArg = Array("--target-dir", generatDir)
-  (new ChiselStage).execute(args ++ extraArg, executeOptions)
+  val extraArgs = Array("--target-dir", generatDir)
+  (new ChiselStage).execute(args ++ extraArgs, executeOptions)
 }

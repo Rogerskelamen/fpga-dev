@@ -8,6 +8,7 @@ import org.scalatest.matchers.must.Matchers
 class DownCounterTest extends AnyFreeSpec with Matchers {
   "DownCounter should wrap at proper clock time" in {
     simulate(new DownCounterGen(8)) { dut =>
+      // reset for DownCounter
       dut.reset poke true.B
       dut.clock.step(2)
 
