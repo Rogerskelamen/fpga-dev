@@ -1,14 +1,21 @@
 TOPNAME = DownCounterGen
+
+# Directories
 BUILD_DIR = ./build
 VERILOG_GEN = ./verilog-gen
 VSIM_DIR = ./src/main/cc/sim
-BIN = $(BUILD_DIR)/$(TOPNAME)
-WAVEFILE = waveform.vcd
-WAVECONFIG = .gtkwave.config
+
+TARGET = $(abspath $(VERILOG_GEN)/$(TOPNAME).v)
+BIN = $(abspath $(BUILD_DIR)/$(TOPNAME))
 SRC = $(abspath $(VSIM_DIR)/tb_$(TOPNAME).cpp)
 
+# Waveform
+WAVEFILE = waveform.vcd
+WAVECONFIG = .gtkwave.config
+
+# Verilog simulator
 VERILATOR = verilator
-VERILATOR_CFLAGS = -cc --build --trace
+VERILATOR_CFLAGS = -MMD --cc --build --trace
 
 verilog:
 	sbt run
@@ -19,7 +26,7 @@ wave: sim
 sim: $(BIN)
 	@$(BIN)
 
-$(BIN): $(VERILOG_GEN)/$(TOPNAME).v $(SRC)
+$(BIN): $(TARGET) $(SRC)
 	@mkdir -p $(BUILD_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
