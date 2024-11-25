@@ -13,5 +13,6 @@
 !*.scala
 !*.cpp
 !*.cc
+!*.ps1
 !Makefile
 !.gtkwave.config

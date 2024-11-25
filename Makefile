@@ -17,8 +17,21 @@ WAVECONFIG = .gtkwave.config
 VERILATOR = verilator
 VERILATOR_CFLAGS = -MMD --cc --build --trace
 
+# Version check
+IS_WINDOWS := $(findstring :, $(PATH))
+ifeq ($(IS_WINDOWS),)
+	OS_TYPE = Linux
+else
+	OS_TYPE = Windows
+endif
+
 verilog:
 	sbt run
+ifeq ($(OS_TYPE),Windows)
+	pwsh .\process.ps1
+else
+	find ./verilog-gen -type f -exec sed -i -e 's/_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1/g' {} +
+endif
 
 wave: sim
 	@gtkwave $(WAVEFILE) -r $(WAVECONFIG)

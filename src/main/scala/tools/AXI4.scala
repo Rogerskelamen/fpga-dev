@@ -3,6 +3,9 @@ package tools
 import chisel3._
 import chisel3.util.Decoupled
 
+/**
+ * Direction is from Master to Slave
+ */
 object AXI4Parameters {
   // -------- Fixed parameters of signals in AXI4 specifications ---------
 
@@ -121,7 +124,7 @@ trait AXI4HasLast {
   val last = Output(Bool())
 }
 
-/*
+/**
  * AXI4-lite
  */
 class AXI4LiteBundleA extends Bundle {
@@ -148,31 +151,33 @@ class AXI4Lite extends Bundle {
   val r  = Flipped(Decoupled(new AXI4LiteBundleR))
 }
 
-/*
+/**
  * AXI4-full
  */
-class AXI4BundleA(override val idBits: Int) extends AXI4LiteBundleA with AXI4HasId with AXI4HasUser {
+class AXI4BundleA(override val idBits: Int)
+  extends AXI4LiteBundleA with AXI4HasId with AXI4HasUser {
   val len   = Output(UInt(AXI4Parameters.lenBits.W))  // number of beats - 1
   val size  = Output(UInt(AXI4Parameters.sizeBits.W)) // bytes in beat = 2^size
   val burst = Output(UInt(AXI4Parameters.burstBits.W))
-  // val lock  = Output(Bool())
-  // val cache = Output(UInt(AXI4Parameters.cacheBits.W))
-  // val qos   = Output(UInt(AXI4Parameters.qosBits.W))  // 0=no QoS, bigger = higher priority
+  val lock  = Output(Bool())
+  val cache = Output(UInt(AXI4Parameters.cacheBits.W))
+  val qos   = Output(UInt(AXI4Parameters.qosBits.W))  // 0=no QoS, bigger = higher priority
+  // val region = UInt(width = 4) // optional
 
   override def toPrintable: Printable = p"addr = 0x${Hexadecimal(addr)}, id = ${id}, len = ${len}, size = ${size}"
 }
 
 // id ... removed in AXI4
 class AXI4BundleW(override val dataBits: Int)
-  extends AXI4LiteBundleW(dataBits) with AXI4HasLast {
+  extends AXI4LiteBundleW(dataBits) with AXI4HasLast with AXI4HasUser {
   override def toPrintable: Printable = p"data = ${Hexadecimal(data)}, wmask = 0x${strb}, last = ${last}"
 }
 class AXI4BundleB(override val idBits: Int)
-  extends AXI4LiteBundleB with AXI4HasId {
+  extends AXI4LiteBundleB with AXI4HasId with AXI4HasUser {
   override def toPrintable: Printable = p"resp = ${resp}, id = ${id}"
 }
 class AXI4BundleR(override val dataBits: Int, override val idBits: Int)
-  extends AXI4LiteBundleR(dataBits) with AXI4HasLast with AXI4HasId {
+  extends AXI4LiteBundleR(dataBits) with AXI4HasLast with AXI4HasId with AXI4HasUser {
   override def toPrintable: Printable = p"resp = ${resp}, id = ${id}, data = ${Hexadecimal(data)}, last = ${last}"
 }
 

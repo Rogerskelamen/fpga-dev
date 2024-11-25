@@ -1,8 +1,10 @@
+import app.led.PulseLight
 import circt.stage._
+import tools.AXIModule
 import utils.DownCounterGen
 
 object Elaborate extends App {
-  def top = new DownCounterGen(8)
+  def top = new AXIModule
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format
