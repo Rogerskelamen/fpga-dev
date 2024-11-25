@@ -18,11 +18,10 @@ VERILATOR = verilator
 VERILATOR_CFLAGS = -MMD --cc --build --trace
 
 # Version check
-IS_WINDOWS := $(findstring :, $(PATH))
-ifeq ($(IS_WINDOWS),)
-	OS_TYPE = Linux
+ifeq ($(OS), Windows_NT)
+    OS_TYPE = Windows
 else
-	OS_TYPE = Windows
+    OS_TYPE = Unix
 endif
 
 verilog:
