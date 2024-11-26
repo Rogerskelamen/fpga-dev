@@ -1,5 +1,7 @@
+package app.mem
+
+import app.mem.MemAccess._
 import chisel3._
-import MemAccess._
 import chisel3.util.{Enum, is, switch}
 import utils.FPGAModule
 
@@ -23,15 +25,15 @@ class MemAccessB(val dwidth: Int, val awidth: Int, val isR: Boolean)
   val done = Input(Bool())
 }
 
-trait MemAcessHasValid { val data_valid = Input(Bool()) }
+trait MemAccessHasValid { val data_valid = Input(Bool()) }
 // external input indicating read ready, connect to IO device
-trait MemAcessHasEReady { val extn_ready = Input(Bool()) }
+trait MemAccessHasEReady { val extn_ready = Input(Bool()) }
 
 class MemAccessRB(override val dwidth: Int, override val awidth: Int)
-  extends MemAccessB(dwidth, awidth, true) with MemAcessHasValid with MemAcessHasEReady
+  extends MemAccessB(dwidth, awidth, true) with MemAccessHasValid with MemAccessHasEReady
 
 class MemAccessWB(override val dwidth: Int, override val awidth: Int)
-  extends MemAccessB(dwidth, awidth, false) with MemAcessHasEReady
+  extends MemAccessB(dwidth, awidth, false) with MemAccessHasEReady
 
 // Read/Write data from DDR
 class MemAccess extends FPGAModule {

@@ -5,6 +5,11 @@ import chisel3._
 /**
  * A better Counter(with less Area)
  * Activate a signal for every n cycles
+ *
+ * :NOTE:
+ * Before you use this Counter,
+ * Do reset the system at beginning.
+ * Otherwise, it will count from zero which cause an error
  */
 object DownCounter {
   def apply(cond: Bool, n: Int): Bool = {
