@@ -33,16 +33,26 @@ class MemAccessByAXI extends FPGAModule {
   val curr_state = RegInit(sIdle)
   val next_state = WireDefault(sIdle)
   curr_state := next_state
+  /** :NOTE:
+   * Be careful when using two state signals to create FSM
+   * next_state is wire type not reg,
+   * so next_state won't stay the same when there is no condition
+   */
   val (cnt, cnt_wrap) =
     Counter(curr_state === sRead && next_state === sIdle, 3)
 
   switch(curr_state) {
-    is(sIdle) { when(!io.extn_ready && !triggered) { next_state := sRead } }
-    is(sRead) { when(io.read.resp.valid) { next_state := sIdle } }
+    is(sIdle) {
+      when(!io.extn_ready && !triggered) { next_state := sRead }
+    }
+    is(sRead) {
+      when(io.read.resp.valid) { next_state := sIdle }
+      .otherwise { next_state := sRead }
+    }
   }
 
   io.read.req.valid := curr_state === sIdle && next_state === sRead
-  io.read.req.addr := BaseAddr + cnt
+  io.read.req.addr := BaseAddr + (cnt << 2)
   when(io.read.resp.valid) {
     rd_r(cnt) := io.read.resp.data
   }
@@ -52,6 +62,5 @@ class MemAccessByAXI extends FPGAModule {
     triggered := true.B
   }
 
-  // indicator
   io.indicator := test()
 }

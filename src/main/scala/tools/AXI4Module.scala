@@ -9,9 +9,14 @@ import utils.FPGAModule
  * Unless otherwise specified
  */
 
-class SimpleDataPortReq(val awidth: Int) extends Bundle {
+class SimpleDataPortReq(val awidth: Int,
+                        val dwidth: Int,
+                        val isW: Boolean) extends Bundle {
   val addr = Output(UInt(awidth.W))
   val valid = Output(Bool())
+  if(isW) {
+    val data = Output(UInt(dwidth.W))
+  }
 }
 
 class SimpleDataPortResp(val dwidth: Int) extends Bundle {
@@ -19,18 +24,18 @@ class SimpleDataPortResp(val dwidth: Int) extends Bundle {
   val valid = Input(Bool())
 }
 
-class SimpleDataPort(val awidth: Int, val dwidth: Int) extends Bundle {
-  val req = new SimpleDataPortReq(awidth)
+class SimpleDataPort(val awidth: Int, val dwidth: Int, isW: Boolean = false) extends Bundle {
+  val req = new SimpleDataPortReq(awidth, dwidth, isW)
   val resp = new SimpleDataPortResp(dwidth)
 }
 
 class AXI4MasterModule(val awidth: Int,
-                      val dwidth: Int,
-                      val lite: Boolean = true) extends FPGAModule {
+                       val dwidth: Int,
+                       val lite: Boolean = true) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val axi = new AXI4Lite
     val read = Flipped(new SimpleDataPort(awidth, dwidth))
-//    val write = Flipped(new MemPort(awidth, dwidth))
+//    val write = Flipped(new SimpleDataPort(awidth, dwidth, isW = true))
   })
 
   // Stay all ports
@@ -53,10 +58,11 @@ class AXI4MasterModule(val awidth: Int,
     }
   }
 
+  // emit address signal
   io.axi.ar.valid := state === sWaitReady
   io.axi.ar.bits.addr := Mux(state === sWaitReady, io.read.req.addr, 0.U)
+  // receive data
   io.axi.r.ready := state === sWaitData
-
   io.read.resp.valid := io.axi.r.fire
   io.read.resp.data := io.axi.r.bits.data
 }
