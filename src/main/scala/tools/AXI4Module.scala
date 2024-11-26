@@ -33,6 +33,10 @@ class AXI4MasterModule(val awidth: Int,
 //    val write = Flipped(new MemPort(awidth, dwidth))
   })
 
+  // Stay all ports
+  dontTouch(io)
+  io.axi <> DontCare
+
   // FSM
   val sIdle :: sWaitReady :: sWaitData :: Nil = Enum(3)
   val state = RegInit(sIdle)
@@ -55,7 +59,4 @@ class AXI4MasterModule(val awidth: Int,
 
   io.read.resp.valid := io.axi.r.fire
   io.read.resp.data := io.axi.r.bits.data
-
-  dontTouch(io)
-  io.axi <> DontCare
 }
