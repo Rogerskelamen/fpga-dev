@@ -3,7 +3,7 @@ import circt.stage._
 import tools.AXI4MasterModule
 
 object Elaborate extends App {
-  def top = new MemAccessByAXI
+  def top = new AXI4MasterModule(32, 32)
   def generatDir: String = "verilog-gen"
 
   // Generate HDL in verilog format

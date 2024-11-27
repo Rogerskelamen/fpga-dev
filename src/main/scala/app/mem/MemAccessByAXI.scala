@@ -1,9 +1,9 @@
 package app.mem
 
 import chisel3._
-import chisel3.util.{Counter, Enum, is, switch}
-import tools.SimpleDataPort
+import chisel3.util.{Counter, Enum, MuxLookup, is, switch}
 import app.mem.MemAccessByAXI.{AWidth, BaseAddr, DATA1, DATA2, DATA3, DWidth}
+import tools.{SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
 object MemAccessByAXI {
@@ -17,7 +17,8 @@ object MemAccessByAXI {
 
 class MemAccessByAXI extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val read = new SimpleDataPort(AWidth, DWidth)
+    val read = new SimpleDataPortR(AWidth, DWidth)
+    val write = new SimpleDataPortW(AWidth, DWidth)
     val extn_ready = Input(Bool())
     // For debug
     val indicator = Output(Bool())
@@ -25,41 +26,78 @@ class MemAccessByAXI extends FPGAModule {
   // define functions
   def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3
 
-  val triggered = RegInit(false.B)
+  val triggered_w = RegInit(false.B)
+  val triggered_r = RegInit(false.B)
   val rd_r = RegInit(VecInit(Seq.fill(3)(0.U(DWidth.W))))
 
   // FSM
-  val sIdle :: sRead :: Nil = Enum(2)
-  val curr_state = RegInit(sIdle)
-  val next_state = WireDefault(sIdle)
-  curr_state := next_state
+  val sIdle :: sRead :: sWrite :: Nil = Enum(3)
+  val curr_state_w = RegInit(sIdle)
+  val next_state_w = WireDefault(sIdle)
+  curr_state_w := next_state_w
+  val (w_cnt, w_cnt_wrap) =
+    Counter(curr_state_w === sWrite && next_state_w === sIdle, 3)
+
   /** :NOTE:
    * Be careful when using two state signals to create FSM
-   * next_state is wire type not reg,
+   * notice that next_state is wire type not reg,
    * so next_state won't stay the same when there is no condition
    */
-  val (cnt, cnt_wrap) =
-    Counter(curr_state === sRead && next_state === sIdle, 3)
-
-  switch(curr_state) {
+  switch(curr_state_w) {
     is(sIdle) {
-      when(!io.extn_ready && !triggered) { next_state := sRead }
+      when(!io.extn_ready && !triggered_w) { next_state_w := sWrite }
     }
-    is(sRead) {
-      when(io.read.resp.valid) { next_state := sIdle }
-      .otherwise { next_state := sRead }
+    is(sWrite) {
+      when(io.write.resp.valid) { next_state_w := sIdle }
+      .otherwise { next_state_w := sWrite }
     }
   }
 
-  io.read.req.valid := curr_state === sIdle && next_state === sRead
-  io.read.req.addr := BaseAddr + (cnt << 2)
+  io.write.req.valid := curr_state_w === sIdle && next_state_w === sWrite
+  io.write.req.addr := BaseAddr + (w_cnt << 2)
+  io.write.req.data := MuxLookup(w_cnt, 0.U)(
+    Seq(
+      0.U -> DATA1,
+      1.U -> DATA2,
+      2.U -> DATA3,
+    )
+  )
+
+  // read
+  val curr_state_r = RegInit(sIdle)
+  val next_state_r = WireDefault(sIdle)
+  curr_state_r := next_state_r
+  val (r_cnt, r_cnt_wrap) =
+    Counter(curr_state_r === sRead && next_state_r === sIdle, 3)
+
+  switch(curr_state_r) {
+    is(sIdle) {
+      when(triggered_r) { next_state_r := sRead }
+    }
+    is(sRead) {
+      when(io.read.resp.valid) { next_state_r := sIdle }
+      .otherwise { next_state_r := sRead }
+    }
+  }
+
+  io.read.req.valid := curr_state_r === sIdle && next_state_r === sRead
+  io.read.req.addr := BaseAddr + (r_cnt << 2)
   when(io.read.resp.valid) {
-    rd_r(cnt) := io.read.resp.data
+    rd_r(r_cnt) := io.read.resp.data
   }
 
   // triggered
-  when(cnt_wrap) {
-    triggered := true.B
+  when(w_cnt_wrap) {
+    triggered_w := true.B
+    triggered_r := true.B
+  }
+  when(r_cnt_wrap) {
+    triggered_r := false.B
+  }
+
+  val indicator_r = RegInit(false.B)
+  when(r_cnt > 1.U) {
+    indicator_r := true.B
   }
 
   io.indicator := test()
