@@ -1,6 +1,6 @@
 import app.mem.MemAccessByAXI
 import circt.stage._
-import tools.AXI4MasterModule
+import tools.bus.AXI4MasterModule
 
 object Elaborate extends App {
   def top = new AXI4MasterModule(32, 32)

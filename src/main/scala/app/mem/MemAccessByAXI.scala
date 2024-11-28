@@ -3,7 +3,7 @@ package app.mem
 import chisel3._
 import chisel3.util.{Counter, Enum, MuxLookup, is, switch}
 import app.mem.MemAccessByAXI.{AWidth, BaseAddr, DATA1, DATA2, DATA3, DWidth}
-import tools.{SimpleDataPortR, SimpleDataPortW}
+import tools.bus.{SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
 object MemAccessByAXI {
