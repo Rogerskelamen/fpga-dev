@@ -8,7 +8,7 @@ object Elaborate extends App {
     FirtoolOption(
       "--lowering-options=disallowLocalVariables" // for common verilog
         // + ",locationInfoStyle=wrapInAtSquareBracket" // for verilator
-        + ",disallowPortDeclSharing,emitWireInPorts,emitBindComments,omitVersionComment"
+        + ",noAlwaysComb,disallowPortDeclSharing,emitWireInPorts,emitBindComments,omitVersionComment"
         + ",mitigateVivadoArrayIndexConstPropBug" // for Vivado
         + ",disallowPackedArrays" // for Yosys
     ),
