@@ -10,9 +10,9 @@ object MemAccessByAXI {
   val AWidth = 32
   val DWidth = 32
   val BaseAddr = "h3800_0000".U
-  val DATA1: UInt = "h1234".U
-  val DATA2: UInt = "habcd".U
-  val DATA3: UInt = "h4321".U
+  val DATA1: UInt = "hdead".U
+  val DATA2: UInt = "hbeef".U
+  val DATA3: UInt = "haaaa".U
 }
 
 class MemAccessByAXI extends FPGAModule {
@@ -93,11 +93,6 @@ class MemAccessByAXI extends FPGAModule {
   }
   when(r_cnt_wrap) {
     triggered_r := false.B
-  }
-
-  val indicator_r = RegInit(false.B)
-  when(r_cnt > 1.U) {
-    indicator_r := true.B
   }
 
   io.indicator := test()
