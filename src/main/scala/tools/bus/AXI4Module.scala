@@ -48,13 +48,20 @@ class AXI4MasterModule(val awidth: Int,
   /*
    * FSM for Write transaction
    */
+  /**
+   * Write Transaction is different from Read because
+   * You don't know who comes first(AW or W?)
+   * Anyway, there are two rules you should always obey:
+   * 1. valid should be de-asserted immediately when handshake finishes
+   * 2. B depends on AW/W (W weekly depends on AW)
+   */
   val aw_fire_r = RegInit(false.B)
-//  val w_fire_r = RegInit(false.B)
+  val w_fire_r = RegInit(false.B)
   when(io.axi.aw.fire) { aw_fire_r := true.B }
-//  when(io.axi.w.fire) { w_fire_r := true.B }
+  when(io.axi.w.fire) { w_fire_r := true.B }
   when(wstate === sWaitResp) {
     aw_fire_r := false.B
-//    w_fire_r := false.B
+    w_fire_r := false.B
   }
 
   switch(wstate) {
@@ -62,7 +69,9 @@ class AXI4MasterModule(val awidth: Int,
       when(io.write.req.valid) { wstate := sWaitReady }
     }
     is(sWaitReady) {
-      when(aw_fire_r && io.axi.w.fire) { wstate := sWaitResp }
+      when((aw_fire_r && io.axi.w.fire) ||
+           (w_fire_r && io.axi.aw.fire)
+      ) { wstate := sWaitResp }
     }
     is(sWaitResp) {
       when(io.axi.b.fire) { wstate := sIdle }
@@ -71,7 +80,7 @@ class AXI4MasterModule(val awidth: Int,
 
   // AW Channel
   val aw_valid_r = RegInit(false.B)
-  when(io.write.req.valid && !aw_valid_r) { aw_valid_r := true.B }
+  when(wstate === sIdle && io.write.req.valid && !aw_valid_r) { aw_valid_r := true.B }
   .elsewhen(io.axi.aw.fire) { aw_valid_r := false.B }
   io.axi.aw.valid := aw_valid_r
   // emit address
@@ -79,14 +88,14 @@ class AXI4MasterModule(val awidth: Int,
 
   // W Channel
   val w_valid_r = RegInit(false.B)
-  when(io.write.req.valid && !w_valid_r) { w_valid_r := true.B }
+  when(wstate === sIdle && io.write.req.valid && !w_valid_r) { w_valid_r := true.B }
   .elsewhen(io.axi.w.fire) { w_valid_r := false.B }
   io.axi.w.valid := w_valid_r
   // emit data/wmask signals
   io.axi.w.bits.data := io.write.req.data
   io.axi.w.bits.strb := "b1111".U
 
-  // get response
+  // B Channel -- get response
   io.axi.b.ready := wstate === sWaitResp
   io.write.resp.valid := io.axi.b.fire
   io.write.resp.data := Mux(io.axi.b.fire, 0.U, ~0.U)
@@ -101,7 +110,7 @@ class AXI4SlaveModule(val awidth: Int,
 
   // FSM
   val sIdle :: sWaitValid :: sResp :: Nil = Enum(3)
-//  val rstate = RegInit(sIdle)
+  // val rstate = RegInit(sIdle)
   val wstate = RegInit(sIdle)
 
   /*
@@ -113,6 +122,7 @@ class AXI4SlaveModule(val awidth: Int,
   /*
    * FSM for Write transaction
    */
+  // AW first, W second
   switch(wstate) {
     is(sIdle) {
       when(io.axi.aw.fire) { wstate := sWaitValid }
