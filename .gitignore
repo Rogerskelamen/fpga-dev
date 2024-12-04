@@ -16,3 +16,4 @@
 !*.ps1
 !Makefile
 !.gtkwave.config
+!.scalafmt.conf
