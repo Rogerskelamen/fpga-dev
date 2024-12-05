@@ -39,7 +39,7 @@ class AXI4MasterModule(val awidth: Int,
 
   // emit address signal
   io.axi.ar.valid := rstate === sWaitReady
-  io.axi.ar.bits.addr := Mux(rstate === sWaitReady, io.read.req.addr, 0.U)
+  io.axi.ar.bits.addr := io.read.req.addr
   // receive data
   io.axi.r.ready := rstate === sWaitData
   io.read.resp.valid := io.axi.r.fire
