@@ -1,11 +1,11 @@
 package app.halftone.errdiff
 
-import app.halftone.HalftoneConfig
+import app.halftone.ErrDiffConfig
 import chisel3._
 import chisel3.util.Decoupled
 import tools.bus.{BramNativePortFull, SimpleDataPortR}
 
-class PixelGet(config: HalftoneConfig) extends Module {
+class PixelGet(config: ErrDiffConfig) extends Module {
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(new Bundle {
       val pos = UInt(config.posWidth.W)

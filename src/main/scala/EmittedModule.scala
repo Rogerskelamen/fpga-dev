@@ -1,5 +1,5 @@
 import app.bram.BramAccess
-import app.halftone.{ErrDiffCore, HalftoneConfig}
+import app.halftone.{ErrDiffConfig, ErrDiffCore}
 import app.mem.MemAccessByAXI
 import chisel3.RawModule
 
@@ -10,6 +10,6 @@ object EmittedModule {
   def ExposedModules: List[() => RawModule] = List(
     () => new MemAccessByAXI,
     () => new BramAccess,
-    () => new ErrDiffCore(HalftoneConfig())
+    () => new ErrDiffCore(ErrDiffConfig())
   )
 }

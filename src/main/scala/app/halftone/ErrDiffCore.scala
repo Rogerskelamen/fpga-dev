@@ -2,23 +2,15 @@ package app.halftone
 
 import app.halftone.errdiff.PixelGet
 import chisel3._
-import chisel3.util.{unsignedBitLength, Counter}
+import chisel3.util.Counter
 import tools.bus.{BramNativePortFull, SimpleDataPortR}
 import utils.FPGAModule
 
-case class HalftoneConfig(
-  pixelWidth: Int = 8,
-  //  baseAddr: Int = ???,
-  ddrBaseAddr: Int = 0,
-  imageRow:    Int = 512,
-  imageCol:    Int = 512,
-  errorWidth:  Int = 8 // maybe 7 is enough?
-) {
-  def imageSiz: Int = imageRow * imageCol
-  def posWidth: Int = unsignedBitLength(imageSiz - 1)
-}
+case class ErrDiffConfig(
+  errorWidth: Int = 8 // maybe 7 is enough?
+) extends HalftoneConfig
 
-class ErrDiffCore(config: HalftoneConfig) extends FPGAModule {
+class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val read       = new SimpleDataPortR(32, dwidth = config.pixelWidth)
     val pb         = Flipped(new BramNativePortFull)
@@ -34,9 +26,9 @@ class ErrDiffCore(config: HalftoneConfig) extends FPGAModule {
   // get pixel(ddr) and err(bram)
   val pixelGet = wrapModuleWithRst(Module(new PixelGet(config)))
 
-  // calculate, store binary value and err
+  // calculate, store binary value and get four error values(LUT)
 
-  // get four error value and output to err cache
+  // output to err cache
 
   // write binary value(ddr)
 
