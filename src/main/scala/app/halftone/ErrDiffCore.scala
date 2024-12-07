@@ -7,8 +7,13 @@ import tools.bus.{BramNativePortFull, SimpleDataPortR}
 import utils.FPGAModule
 
 case class ErrDiffConfig(
-  errorWidth: Int = 8 // maybe 7 is enough?
-) extends HalftoneConfig
+  override val pixelWidth: Int = 8,
+  // override val ddrBaseAddr: Int = ???,
+  override val ddrBaseAddr: Int = 0,
+  override val imageRow:    Int = 512,
+  override val imageCol:    Int = 512,
+  errorWidth:               Int = 8 // maybe 7 is enough?
+) extends HalftoneConfig(pixelWidth, ddrBaseAddr, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
