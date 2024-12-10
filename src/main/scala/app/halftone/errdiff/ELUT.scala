@@ -4,6 +4,9 @@ import chisel3._
 import chisel3.experimental.VecLiterals.AddVecLiteralConstructor
 import chisel3.util.MuxLookup
 
+/** Pure Combinatorial Logic Circuit
+  * @param errorWidth
+  */
 class ELUT(val errorWidth: Int) extends Module {
   val io = IO(new Bundle {
     val err = Input(SInt(errorWidth.W))
