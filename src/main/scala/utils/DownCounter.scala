@@ -8,7 +8,7 @@ import chisel3._
  *
  * :NOTE:
  * Before you use this Counter,
- * Do reset the system at beginning.
+ * !!Do reset the system at beginning!!
  * Otherwise, it will count from zero which cause an error
  */
 object DownCounter {

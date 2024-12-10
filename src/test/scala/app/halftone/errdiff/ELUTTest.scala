@@ -20,7 +20,7 @@ class ELUTTest extends AnyFreeSpec with Matchers {
       dut.io.out(2) expect -40.S(errorWidth.W)
       dut.io.out(3) expect -24.S(errorWidth.W)
 
-      dut.io.err poke 156.U // an unsigned number, equals to -100
+      dut.io.err poke -100.S
       dut.io.out(0) expect -44.S(errorWidth.W)
       dut.io.out(1) expect -6.S(errorWidth.W)
       dut.io.out(2) expect -31.S(errorWidth.W)

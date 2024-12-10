@@ -7,7 +7,7 @@ import chisel3.util.MuxLookup
 /** Pure Combinatorial Logic Circuit
   * @param errorWidth
   */
-class ELUT(val errorWidth: Int) extends Module {
+class ELUT(val errorWidth: Int) extends RawModule {
   val io = IO(new Bundle {
     val err = Input(SInt(errorWidth.W))
     val out = Output(Vec(4, SInt(errorWidth.W)))
