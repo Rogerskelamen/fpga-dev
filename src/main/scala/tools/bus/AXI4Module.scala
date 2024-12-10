@@ -2,6 +2,7 @@ package tools.bus
 
 import chisel3._
 import chisel3.util.{Enum, is, switch}
+import tools.bus.AXI4Parameters.RESP_OKAY
 import utils.FPGAModule
 
 class AXI4MasterModule(val awidth: Int,
@@ -63,15 +64,18 @@ class AXI4MasterModule(val awidth: Int,
     aw_fire_r := false.B
     w_fire_r := false.B
   }
+  // format: off
+  val axiw_fire = (aw_fire_r && io.axi.w.fire) ||
+                  (w_fire_r && io.axi.aw.fire) ||
+                  (io.axi.w.fire && io.axi.aw.fire)
+  // format: on
 
   switch(wstate) {
     is(sIdle) {
       when(io.write.req.valid) { wstate := sWaitReady }
     }
     is(sWaitReady) {
-      when((aw_fire_r && io.axi.w.fire) ||
-           (w_fire_r && io.axi.aw.fire)
-      ) { wstate := sWaitResp }
+      when(axiw_fire) { wstate := sWaitResp }
     }
     is(sWaitResp) {
       when(io.axi.b.fire) { wstate := sIdle }
@@ -106,45 +110,81 @@ class AXI4SlaveModule(val awidth: Int,
                       val lite: Boolean = true) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val axi = Flipped(new AXI4Lite)
+    val read = new SimpleDataPortR(awidth, dwidth)
+    val write = new SimpleDataPortW(awidth, dwidth)
   })
 
   // FSM
-  val sIdle :: sWaitValid :: sResp :: Nil = Enum(3)
-  // val rstate = RegInit(sIdle)
+  val sIdle :: sWaitValid :: sWaitRReady :: sResp :: Nil = Enum(3)
+  val rstate = RegInit(sIdle)
   val wstate = RegInit(sIdle)
 
   /*
    * FSM for Read transaction
    */
-  io.axi.r <> DontCare
-  io.axi.ar <> DontCare
+  /**
+   * :NOTE:
+   * slave module shouldn't be such quick to give a response(no matter read or write)
+   * "resp.valid" signal should be asserted at least one cycle later
+   */
+  switch(rstate) {
+    is(sIdle) {
+      when(io.axi.ar.fire) { rstate := sWaitValid }
+    }
+    is(sWaitValid) {
+      when(io.read.resp.valid) { rstate := sWaitRReady }
+    }
+    is(sWaitRReady) {
+      when(io.axi.r.fire) { rstate := sIdle }
+    }
+  }
+  io.axi.ar.ready := rstate === sIdle
+  // transfer read request
+  io.read.req.valid := io.axi.ar.fire
+  io.read.req.addr := io.axi.ar.bits.addr
+  // transfer back data
+  io.axi.r.valid := rstate === sWaitRReady
+  io.axi.r.bits.data := io.read.resp.data
+  io.axi.r.bits.resp := RESP_OKAY // always response state as OK
 
   /*
    * FSM for Write transaction
    */
-  // AW first, W second
+  val waddr_r = RegInit(0.U(awidth.W))
+  val wdata_r = RegInit(0.U(dwidth.W))
+  val aw_fire_r = RegInit(false.B)
+  val w_fire_r = RegInit(false.B)
+  when(io.axi.aw.fire) { aw_fire_r := true.B }
+  when(io.axi.w.fire) { w_fire_r := true.B }
+  when(wstate === sWaitValid) {
+    aw_fire_r := false.B
+    w_fire_r := false.B
+  }
+  // format: off
+  val axiw_fire = (aw_fire_r && io.axi.w.fire) ||
+                  (w_fire_r && io.axi.aw.fire) ||
+                  (io.axi.w.fire && io.axi.aw.fire)
+  // format: on
+
   switch(wstate) {
     is(sIdle) {
-      when(io.axi.aw.fire) { wstate := sWaitValid }
+      when(axiw_fire) { wstate := sWaitValid }
     }
     is(sWaitValid) {
-      when(io.axi.w.fire) { wstate := sResp }
+      when(io.write.resp.valid) { wstate := sResp }
     }
     is(sResp) {
       when(io.axi.b.fire) { wstate := sIdle }
     }
   }
 
-  io.axi.aw.ready := wstate === sIdle
-  val addr = RegInit(0.U(awidth.W))
-  when(io.axi.aw.fire) {
-    addr := io.axi.aw.bits.addr
-  }
-  io.axi.w.ready := wstate === sWaitValid
-  val data = RegInit(0.U(dwidth.W))
-  when(io.axi.w.fire) {
-    data := io.axi.w.bits.data
-  }
+  io.axi.aw.ready := wstate === sIdle && !aw_fire_r
+  io.axi.w.ready := wstate === sIdle && !w_fire_r
+  // transfer write addr & data
+  io.write.req.valid := axiw_fire
+  io.write.req.addr := io.axi.aw.bits.addr
+  io.write.req.data := io.axi.w.bits.data
+  // emit response signal
   io.axi.b.valid := wstate === sResp
-  io.axi.b.bits.resp := 0.U
+  io.axi.b.bits.resp := RESP_OKAY // always response state as OK
 }
