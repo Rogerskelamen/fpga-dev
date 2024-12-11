@@ -2,7 +2,6 @@ package app.reg
 
 import app.reg.ControlReg.{AWidth, DWidth}
 import chisel3._
-import chisel3.util.Enum
 import tools.bus.{SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
@@ -13,19 +12,28 @@ object ControlReg {
 
 class ControlReg extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val read = Flipped(new SimpleDataPortR(AWidth, DWidth))
+    val read  = Flipped(new SimpleDataPortR(AWidth, DWidth))
     val write = Flipped(new SimpleDataPortW(AWidth, DWidth))
     // for debug
     val indicator = Output(Bool())
   })
 
-  val ledReg = Reg(UInt(DWidth.W))
+  io.read <> DontCare
 
-  // FSM
-  val sIdle :: sBusy :: Nil = Enum(2)
-  // io.write.req.valid -> ledReg := io.write.req.bits
-  when(io.write.req.addr === "h4000_0000".U) {
-    ledReg := io.write.req.data
+  val ledReg = RegInit(0.U(DWidth.W))
+  val busy   = RegInit(false.B)
+  io.write.resp.valid := busy
+  io.write.resp.data := 0.U
+
+  when(busy) {
+    busy := false.B
+  }.otherwise {
+    when(io.write.req.valid) {
+      when(io.write.req.addr === "h4000_0000".U) {
+        ledReg := io.write.req.data
+      }
+      busy := true.B
+    }
   }
 
   io.indicator := ledReg === 1.U
