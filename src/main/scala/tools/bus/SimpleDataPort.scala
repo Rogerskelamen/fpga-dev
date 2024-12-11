@@ -20,6 +20,7 @@ class SimpleDataPortReqW(val awidth: Int,
                          val dwidth: Int) extends Bundle {
   val addr = Output(UInt(awidth.W))
   val data = Output(UInt(dwidth.W))
+  val strb = Output(UInt((dwidth/8).W))
   val valid = Output(Bool())
 }
 

@@ -1,19 +1,25 @@
 package app.reg
 
+import app.reg.ControlReg.{AWidth, DWidth}
 import chisel3._
 import chisel3.util.Enum
 import tools.bus.{SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
+object ControlReg {
+  val AWidth = 32
+  val DWidth = 32
+}
+
 class ControlReg extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val read = Flipped(new SimpleDataPortR(32, 32))
-    val write = Flipped(new SimpleDataPortW(32, 32))
+    val read = Flipped(new SimpleDataPortR(AWidth, DWidth))
+    val write = Flipped(new SimpleDataPortW(AWidth, DWidth))
     // for debug
     val indicator = Output(Bool())
   })
 
-  val ledReg = Reg(UInt(32.W))
+  val ledReg = Reg(UInt(DWidth.W))
 
   // FSM
   val sIdle :: sBusy :: Nil = Enum(2)

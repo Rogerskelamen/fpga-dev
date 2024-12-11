@@ -21,7 +21,7 @@ class MemAccessByAXI extends FPGAModule {
     val write = new SimpleDataPortW(AWidth, DWidth)
     val extn_ready = Input(Bool())
     // For debug
-//    val indicator = Output(Bool())
+    val indicator = Output(Bool())
   })
   // define functions
   def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3
@@ -54,6 +54,7 @@ class MemAccessByAXI extends FPGAModule {
   }
 
   io.write.req.valid := curr_state_w === sIdle && next_state_w === sWrite
+  io.write.req.strb := ~0.U((DWidth/8).W)
   io.write.req.addr := BaseAddr + (w_cnt << 2)
   io.write.req.data := MuxLookup(w_cnt, 0.U)(
     Seq(
@@ -95,5 +96,5 @@ class MemAccessByAXI extends FPGAModule {
     triggered_r := false.B
   }
 
-//  io.indicator := test()
+  io.indicator := test()
 }

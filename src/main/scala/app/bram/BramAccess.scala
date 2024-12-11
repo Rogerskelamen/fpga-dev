@@ -19,7 +19,7 @@ class BramAccess extends FPGAModule {
     val pa = Flipped(new BramNativePortFull) // to write
     val pb = Flipped(new BramNativePortFull) // to read
     // For debug
-    val indicator = Output(Bool())
+//    val indicator = Output(Bool())
   })
   // define functions
   def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3 && rd_r(3) === DATA4
@@ -80,5 +80,5 @@ class BramAccess extends FPGAModule {
     }
   }
 
-  io.indicator := test()
+//  io.indicator := test()
 }

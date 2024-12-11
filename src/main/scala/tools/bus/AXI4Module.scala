@@ -97,7 +97,7 @@ class AXI4MasterModule(val awidth: Int,
   io.axi.w.valid := w_valid_r
   // emit data/wmask signals
   io.axi.w.bits.data := io.write.req.data
-  io.axi.w.bits.strb := "b1111".U
+  io.axi.w.bits.strb := io.write.req.strb
 
   // B Channel -- get response
   io.axi.b.ready := wstate === sWaitResp
@@ -115,7 +115,7 @@ class AXI4SlaveModule(val awidth: Int,
   })
 
   // FSM
-  val sIdle :: sWaitValid :: sWaitRReady :: sResp :: Nil = Enum(3)
+  val sIdle :: sWaitValid :: sWaitRReady :: sResp :: Nil = Enum(4)
   val rstate = RegInit(sIdle)
   val wstate = RegInit(sIdle)
 
@@ -124,7 +124,7 @@ class AXI4SlaveModule(val awidth: Int,
    */
   /**
    * :NOTE:
-   * slave module shouldn't be such quick to give a response(no matter read or write)
+   * Slave module shouldn't be such quick to give a response(no matter read or write)
    * "resp.valid" signal should be asserted at least one cycle later
    */
   switch(rstate) {
@@ -150,12 +150,20 @@ class AXI4SlaveModule(val awidth: Int,
   /*
    * FSM for Write transaction
    */
-  val waddr_r = RegInit(0.U(awidth.W))
-  val wdata_r = RegInit(0.U(dwidth.W))
   val aw_fire_r = RegInit(false.B)
   val w_fire_r = RegInit(false.B)
-  when(io.axi.aw.fire) { aw_fire_r := true.B }
-  when(io.axi.w.fire) { w_fire_r := true.B }
+  val waddr_r = RegInit(0.U(awidth.W))
+  val wdata_r = RegInit(0.U(dwidth.W))
+  val wstrb_r = RegInit(0.U((dwidth/8).W))
+  when(io.axi.aw.fire) {
+    aw_fire_r := true.B
+    waddr_r := io.axi.aw.bits.addr
+  }
+  when(io.axi.w.fire) {
+    w_fire_r := true.B
+    wdata_r := io.axi.w.bits.data
+    wstrb_r := io.axi.w.bits.strb
+  }
   when(wstate === sWaitValid) {
     aw_fire_r := false.B
     w_fire_r := false.B
@@ -182,9 +190,14 @@ class AXI4SlaveModule(val awidth: Int,
   io.axi.w.ready := wstate === sIdle && !w_fire_r
   // transfer write addr & data
   io.write.req.valid := axiw_fire
-  io.write.req.addr := io.axi.aw.bits.addr
-  io.write.req.data := io.axi.w.bits.data
-  // emit response signal
+
+  // AW Channel
+  io.write.req.addr := Mux(aw_fire_r, waddr_r, io.axi.aw.bits.addr)
+  // W Channel
+  io.write.req.data := Mux(w_fire_r, wdata_r, io.axi.w.bits.data)
+  io.write.req.strb := Mux(w_fire_r, wstrb_r, io.axi.w.bits.strb)
+
+  // B Channel -- emit response signal
   io.axi.b.valid := wstate === sResp
   io.axi.b.bits.resp := RESP_OKAY // always response state as OK
 }
