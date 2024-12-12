@@ -10,7 +10,7 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
     val out = Decoupled(new ThreshCalc2ErrorOut(config.posWidth, config.errorWidth))
   })
 
-  // Registers(for value storage and state present)
+  // Registers(for value storage and state presentation)
   val pos = Reg(UInt(config.posWidth.W))
   val pix = Reg(UInt(config.pixelWidth.W))
   val err = Reg(UInt(config.errorWidth.W))
@@ -21,7 +21,6 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
 
   io.out.valid := resultValid
   io.in.ready  := !busy
-  io.out.bits  := DontCare
 
   /*
    * Lookup Table
@@ -36,12 +35,12 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
   /*
    * Calculate errors to be diffused
    */
-  elut.io.err        := err
-  io.out.bits.errOut := elut.io.out
+  elut.io.err := err
 
   // Emit outputs
-  io.out.bits.pos  := pos
-  io.out.bits.bval := binOut
+  io.out.bits.pos    := pos
+  io.out.bits.bval   := binOut
+  io.out.bits.errOut := elut.io.out
 
   when(busy) {
     resultValid := true.B
@@ -51,9 +50,10 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
     }
   }.otherwise {
     when(io.in.valid) {
-      pos  := io.in.bits.pos
-      pix  := io.in.bits.pix
-      err  := io.in.bits.err
+      val inBundle = io.in.deq()
+      pos  := inBundle.pos
+      pix  := inBundle.pix
+      err  := inBundle.err
       busy := true.B
     }
   }

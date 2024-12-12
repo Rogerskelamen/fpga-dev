@@ -15,3 +15,8 @@ class ThreshCalc2ErrorOut(posWidth: Int, errorWidth: Int)
   val bval = Bool()
   val errOut = Vec(4, SInt(errorWidth.W))
 }
+
+class ErrorOut2WriteBinary(posWidth: Int) extends Bundle {
+  val pos = UInt(posWidth.W)
+  val bval = Bool()
+}

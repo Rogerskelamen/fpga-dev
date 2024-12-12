@@ -15,7 +15,7 @@ class PixelGet(config: ErrDiffConfig) extends Module {
     val out  = Decoupled(new PixelGet2ThreshCalc(config.pixelWidth, config.errorWidth, config.posWidth))
   })
 
-  // Registers(for value storage and state present)
+  // Registers(for value storage and state presentation)
   val pos         = Reg(UInt(config.posWidth.W))
   val pix         = Reg(UInt(config.pixelWidth.W))
   val err         = Reg(UInt(config.errorWidth.W))
