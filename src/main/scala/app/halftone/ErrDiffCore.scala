@@ -12,7 +12,8 @@ case class ErrDiffConfig(
   override val ddrBaseAddr: Int = 0,
   override val imageRow:    Int = 512,
   override val imageCol:    Int = 512,
-  errorWidth:               Int = 8 // maybe 7 is enough?
+  errorWidth:               Int = 8, // maybe 7 is enough?
+  threshold: Int = 128
 ) extends HalftoneConfig(pixelWidth, ddrBaseAddr, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
@@ -26,19 +27,21 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
     withClockAndReset(fpga_clk, (~fpga_rst).asBool) { subModule }
   }
 
-  /** All Four Stages
-    */
+  /*
+   * All Four Stages
+   */
   // get pixel(ddr) and err(bram)
   val pixelGet = wrapModuleWithRst(Module(new PixelGet(config)))
 
-  // calculate, store binary value and get four error values(LUT)
+  // calculate, get binary value and four error values(LUT)
 
   // output to err cache
 
   // write binary value(ddr)
 
-  /** Logics
-    */
+  /*
+   * Logics
+   */
   // Registers
   val triggered = RegInit(false.B)
   when(!io.extn_ready) { triggered := true.B }
