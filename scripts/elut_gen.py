@@ -4,5 +4,5 @@ with open('./out/elut_gen', 'w+') as f:
 		data2 = round(n * 1/16)
 		data3 = round(n * 5/16)
 		data4 = round(n * 3/16)
-		format_str = f"{n}.S.asUInt -> errorVecLit({data1}.S, {data2}.S, {data3}.S, {data4}.S),\n"
+		format_str = f"litErrToUInt({n}) -> errorVecLit({data1}.S, {data2}.S, {data3}.S, {data4}.S),\n"
 		f.write(format_str)
