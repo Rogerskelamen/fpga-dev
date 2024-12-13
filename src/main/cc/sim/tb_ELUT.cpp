@@ -24,6 +24,9 @@ int main() {
    * -19 => 0xed
    */
   for(int i = 0; i < MAX_SIM_TIME; i++) {
+    if (i >= 5) {
+      top->io_err = -0x10;
+    }
     top->eval();
     contextp->timeInc(1);
     m_trace->dump(contextp->time());

@@ -14,17 +14,23 @@ class ELUTTest extends AnyFreeSpec with Matchers {
   "ELUT should emit correct error value" in {
     import ELUTTest._
     simulate(new ELUT(errorWidth)) { dut =>
-      dut.io.err poke -127.S // simple signed number
-      dut.io.out(0) expect -56.S(errorWidth.W)
-      dut.io.out(1) expect -8.S(errorWidth.W)
-      dut.io.out(2) expect -40.S(errorWidth.W)
-      dut.io.out(3) expect -24.S(errorWidth.W)
+      for (err <- -127 to -127) {
+        // input data, calculate by hardware
+        dut.io.err poke err.S(errorWidth.W)
 
-      dut.io.err poke -100.S
-      dut.io.out(0) expect -44.S(errorWidth.W)
-      dut.io.out(1) expect -6.S(errorWidth.W)
-      dut.io.out(2) expect -31.S(errorWidth.W)
-      dut.io.out(3) expect -19.S(errorWidth.W)
+        // calculate result manually
+        val errF = err.toFloat
+        val result0 = scala.math.round(errF * 7/16)
+        val result1 = scala.math.round(errF * 1/16)
+        val result2 = scala.math.round(errF * 5/16)
+        val result3 = scala.math.round(errF * 3/16)
+
+        // compare hardware result with hand calc
+        dut.io.out(0) expect result0.S
+        dut.io.out(1) expect result1.S
+        dut.io.out(2) expect result2.S
+        dut.io.out(3) expect result3.S
+      }
     }
   }
 }
