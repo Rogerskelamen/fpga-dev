@@ -1,5 +1,7 @@
 with open('./out/elut_gen', 'w+') as f:
 	for n in range(-127, 128): # clockwise
+        # python's round function use round-half-to-even
+        # but scala's round function use simple round
 		data1 = round(n * 7/16)
 		data2 = round(n * 1/16)
 		data3 = round(n * 5/16)
