@@ -24,8 +24,6 @@ int main() {
    * -19 => 0xed
    */
   for(int i = 0; i < MAX_SIM_TIME; i++) {
-    top->reset = 0;
-    top->clock ^= 1;
     top->eval();
     contextp->timeInc(1);
     m_trace->dump(contextp->time());
