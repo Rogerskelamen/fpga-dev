@@ -24,7 +24,7 @@ class ELUT(val errorWidth: Int) extends RawModule {
   }
 
   /** Chisel will only fill bits width
-    * with the minimal satisfaction of presentation of Literal variables
+    * with the minimal satisfaction for presentation of literal variables
     * It won't expand bits width anyway, e.g.
     * -64 will be presented as `b100_0000` rather than `b1100_0000`
     */
