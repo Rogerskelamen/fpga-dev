@@ -14,8 +14,7 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
   val pos = Reg(UInt(config.posWidth.W))
   val pix = Reg(UInt((config.pixelWidth+2).W)) // expand 2 bit
   val err = Reg(SInt((config.errorWidth+2).W)) // expand 2 bit
-//  val bval = Reg(Bool()) // output binary value
-//  val errOut = Reg(Vec(4, SInt(config.errorWidth.W)))
+
   val busy        = RegInit(false.B)
   val resultValid = RegInit(false.B)
 
@@ -31,13 +30,13 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
    * Compare with Threshold
    */
   /** Explain these variable range
-   * pix = [0, 255], err = [-127, 127], pix + err = [-127, 382]
-   * Because err can be negative,
-   * So make vars as SInt when calculating
-   * make vars as UInt when storing
-   */
+    * pix = [0, 255], err = [-127, 127], pix + err = [-127, 382]
+    * Because err can be negative,
+    * So make vars as SInt when calculating
+    * make vars as UInt when storing
+    */
   val realPix = pix.asSInt + err
-  val binOut = Mux(realPix < config.threshold.S, 0.U, 1.U)
+  val binOut  = Mux(realPix < config.threshold.S, 0.U, 1.U)
 
   /*
    * Calculate errors to be diffused
