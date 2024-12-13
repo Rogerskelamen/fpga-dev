@@ -22,6 +22,10 @@ class ELUT(val errorWidth: Int) extends RawModule {
     )
   }
 
+  /* TODO
+   * compute the errors(iterate) to build LUT Seq
+   * rather than hardcoding
+   */
   io.out := MuxLookup(io.err.asUInt, errorVecLit(0.S, 0.S, 0.S, 0.S))(
     Seq(
       -127.S.asUInt -> errorVecLit(-56.S, -8.S, -40.S, -24.S),

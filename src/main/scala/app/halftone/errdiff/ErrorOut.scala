@@ -40,7 +40,7 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
     /*
      * Write to Error Cache
      */
-    // when to write bram()
+    // when to write bram
     when(!resultValid) {
       io.pa.en := true.B
       io.pa.we := true.B
@@ -53,7 +53,7 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
         3.U -> diffBelowLeft
       )
     )
-    io.pa.din := errOut(cnt)
+    io.pa.din := errOut(cnt).asUInt
 
     when(cntWrap) { resultValid := true.B }
     when(io.out.fire) {

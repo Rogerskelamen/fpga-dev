@@ -12,8 +12,8 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
 
   // Registers(for value storage and state presentation)
   val pos = Reg(UInt(config.posWidth.W))
-  val pix = Reg(UInt(config.pixelWidth.W))
-  val err = Reg(UInt(config.errorWidth.W))
+  val pix = Reg(UInt((config.pixelWidth+1).W)) // expand 1 bit
+  val err = Reg(SInt((config.errorWidth+1).W)) // expand 1 bit
 //  val bval = Reg(Bool()) // output binary value
 //  val errOut = Reg(Vec(4, SInt(config.errorWidth.W)))
   val busy        = RegInit(false.B)
@@ -30,12 +30,19 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
   /*
    * Compare with Threshold
    */
-  val binOut = Mux(pix + err < config.threshold.U, 0.U, 1.U)
+  /** Explain these variable range
+   * pix = [0, 255], err = [-127, 127], pix + err = [-127, 382]
+   * Because err can be negative,
+   * So make vars as SInt when calculating
+   * make vars as UInt when storing
+   */
+  val realPix = pix.asSInt + err
+  val binOut = Mux(realPix < config.threshold.S, 0.U, 1.U)
 
   /*
    * Calculate errors to be diffused
    */
-  elut.io.err := err
+  elut.io.err := realPix - Mux(binOut.asBool, 255.S(config.pixelWidth.W), 0.S)
 
   // Emit outputs
   io.out.bits.pos    := pos
@@ -53,7 +60,7 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
       val inBundle = io.in.deq()
       pos  := inBundle.pos
       pix  := inBundle.pix
-      err  := inBundle.err
+      err  := inBundle.err.asSInt
       busy := true.B
     }
   }
