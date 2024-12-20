@@ -2,7 +2,7 @@ import app.bram.BramAccess
 import app.halftone.errdiff.{ELUT, ErrorOut, ThreshCalc}
 import app.halftone.{ErrDiffConfig, ErrDiffCore}
 import app.mem.MemAccessByAXI
-import app.reg.{ControlReg, WriteMasterTestModule}
+import app.reg.ControlReg
 import chisel3.{Connectable, RawModule}
 import tools.bus.{AXI4MasterModule, AXI4SlaveModule}
 

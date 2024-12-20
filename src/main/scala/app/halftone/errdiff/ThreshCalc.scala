@@ -35,6 +35,8 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
     * So make vars as SInt when calculating
     * make vars as UInt when storing
     */
+  // Chisel data operation(+/-) emits a result whose width
+  // is the max width of two operands, see more on https://www.chisel-lang.org/docs/explanations/width-inference
   val realPix = pix.asSInt + err
   val binOut  = Mux(realPix < config.threshold.S, 0.U, 1.U)
 
