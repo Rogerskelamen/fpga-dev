@@ -25,11 +25,12 @@ class WriteBinary(config: ErrDiffConfig) extends Module {
    * Write binary pixel to ddr
    */
   io.write.req.valid := io.in.fire
-  io.write.req.strb  := Fill(config.pixelWidth, 1.U(1.W))
+  io.write.req.strb  := Fill(config.pixelWidth/8, 1.U(1.W))
   io.write.req.addr  := io.in.bits.pos + config.ddrBaseAddr.U
   io.write.req.data  := Mux(io.in.bits.bval, 255.U(config.pixelWidth.W), 0.U(config.pixelWidth.W))
 
   when(busy) {
+    // write completed
     when(io.write.resp.valid) {
       resultValid := true.B
     }

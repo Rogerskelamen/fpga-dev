@@ -1,9 +1,9 @@
 package app.halftone
 
-import app.halftone.errdiff.PixelGet
+import app.halftone.errdiff.{ErrorOut, PixelGet, ThreshCalc, WriteBinary}
 import chisel3._
 import chisel3.util.Counter
-import tools.bus.{BramNativePortFull, SimpleDataPortR}
+import tools.bus.{BramNativePortFull, SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
 case class ErrDiffConfig(
@@ -13,13 +13,15 @@ case class ErrDiffConfig(
   override val imageRow:    Int = 512,
   override val imageCol:    Int = 512,
   errorWidth:               Int = 8,
-  threshold: Int = 128
-) extends HalftoneConfig(pixelWidth, ddrBaseAddr, imageRow, imageCol)
+  threshold:                Int = 128)
+extends HalftoneConfig(pixelWidth, ddrBaseAddr, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val read       = new SimpleDataPortR(32, dwidth = config.pixelWidth)
+    val write      = new SimpleDataPortW(32, dwidth = config.pixelWidth)
     val pb         = Flipped(new BramNativePortFull)
+    val pa         = Flipped(new BramNativePortFull)
     val extn_ready = Input(Bool())
   })
 
@@ -37,29 +39,41 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
 
   // 1 cycle
   // calculate, get binary value and four error values(LUT)
+  val threshCalc = wrapModuleWithRst(Module(new ThreshCalc(config)))
 
   // 7 cycles
   // output to err cache
+  val errorOut = wrapModuleWithRst(Module(new ErrorOut(config)))
 
   // 3 cycles at least
   // write binary value(ddr)
+  val writeBinary = wrapModuleWithRst(Module(new WriteBinary(config)))
 
   /*
    * Logics
    */
+  // Stages connection
+  threshCalc.io.in  <> pixelGet.io.out
+  errorOut.io.in    <> threshCalc.io.out
+  writeBinary.io.in <> errorOut.io.out
+
+  // useless signals
+  writeBinary.io.out.ready := pixelGet.io.in.ready
+
   // Registers
   val triggered = RegInit(false.B)
   when(!io.extn_ready) { triggered := true.B }
 
-  val (pos, posWrap) = Counter(pixelGet.io.out.fire, config.imageSiz - 1)
+  // pixel position counter
+  val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz - 1)
 
-  val pipExe = RegInit(false.B)
-  pipExe := (pixelGet.io.out.fire || (!io.extn_ready && !triggered)) && !posWrap
-
-  pixelGet.io.in.valid    := pipExe
+  // Execution trigger
+  val pipeExe = (writeBinary.io.out.fire || (!io.extn_ready && !triggered)) && !posWrap
+  pixelGet.io.in.valid    := pipeExe
   pixelGet.io.in.bits.pos := pos
 
-  pixelGet.io.pb   <> io.pb
-  pixelGet.io.read <> io.read
-  pixelGet.io.out  <> DontCare
+  io.pb    <> pixelGet.io.pb
+  io.read  <> pixelGet.io.read
+  io.pa    <> errorOut.io.pa
+  io.write <> writeBinary.io.write
 }

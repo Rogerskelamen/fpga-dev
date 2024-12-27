@@ -1,10 +1,6 @@
-import app.bram.BramAccess
-import app.halftone.errdiff.{ELUT, ErrorOut, ThreshCalc, WriteBinary}
+import app.halftone.errdiff.ErrorOut
 import app.halftone.{ErrDiffConfig, ErrDiffCore}
-import app.mem.MemAccessByAXI
-import app.reg.ControlReg
-import chisel3.{Connectable, RawModule}
-import tools.bus.{AXI4MasterModule, AXI4SlaveModule}
+import chisel3.RawModule
 
 object EmittedModule {
   // Chisel Module needs to be created in a certain `builder context`
@@ -15,9 +11,7 @@ object EmittedModule {
 //    () => new AXI4MasterModule(32, 32),
 //    () => new AXI4SlaveModule(32, 32),
 //    () => new BramAccess,
-    () => new ErrDiffCore(ErrDiffConfig()),
-    () => new ThreshCalc(ErrDiffConfig()),
     () => new ErrorOut(ErrDiffConfig()),
-    () => new WriteBinary(ErrDiffConfig()),
+    () => new ErrDiffCore(ErrDiffConfig()),
   )
 }

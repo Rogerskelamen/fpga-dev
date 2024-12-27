@@ -22,11 +22,11 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
   io.out.valid := resultValid
   io.in.ready  := !busy
   // useless signals
-  io.out.bits := DontCare
   io.pa       := DontCare
   io.pa.en    := false.B
   io.pa.we    := false.B
 
+  /* TODO: check if position is out of boundary */
   val diffRight      = pos + 1.U
   val diffBelowRight = pos + config.imageCol.U + 1.U
   val diffBelow      = pos + config.imageCol.U
@@ -35,6 +35,7 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
 
   // Emit outputs
   io.out.bits.pos := pos
+  io.out.bits.bval := bval
 
   when(busy) {
     /*
