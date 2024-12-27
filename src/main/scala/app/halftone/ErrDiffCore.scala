@@ -29,14 +29,19 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
 
   /*
    * All Four Stages
+   * multi-cycle none pipeline first
    */
+  // 3 cycles at least
   // get pixel(ddr) and err(bram)
   val pixelGet = wrapModuleWithRst(Module(new PixelGet(config)))
 
+  // 1 cycle
   // calculate, get binary value and four error values(LUT)
 
+  // 7 cycles
   // output to err cache
 
+  // 3 cycles at least
   // write binary value(ddr)
 
   /*

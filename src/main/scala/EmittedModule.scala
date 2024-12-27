@@ -1,5 +1,5 @@
 import app.bram.BramAccess
-import app.halftone.errdiff.{ELUT, ErrorOut, ThreshCalc}
+import app.halftone.errdiff.{ELUT, ErrorOut, ThreshCalc, WriteBinary}
 import app.halftone.{ErrDiffConfig, ErrDiffCore}
 import app.mem.MemAccessByAXI
 import app.reg.ControlReg
@@ -16,8 +16,8 @@ object EmittedModule {
 //    () => new AXI4SlaveModule(32, 32),
 //    () => new BramAccess,
     () => new ErrDiffCore(ErrDiffConfig()),
-    () => new ControlReg,
     () => new ThreshCalc(ErrDiffConfig()),
     () => new ErrorOut(ErrDiffConfig()),
+    () => new WriteBinary(ErrDiffConfig()),
   )
 }
