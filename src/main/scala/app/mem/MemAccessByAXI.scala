@@ -10,18 +10,21 @@ object MemAccessByAXI {
   val AWidth = 32
   val DWidth = 32
   val BaseAddr = "h3800_0000".U
-  val DATA1: UInt = "hdead".U
-  val DATA2: UInt = "hbeef".U
-  val DATA3: UInt = "haaaa".U
+  val DATA1: UInt = "had".U
+  val DATA2: UInt = "hde".U
+  val DATA3: UInt = "haa".U
 }
 
+/** Address accessed from ddr is aligned with 4 bytes = 1 word
+ * This is for axi bus connects to ZYNQ PS
+ */
 class MemAccessByAXI extends FPGAModule {
   val io = FlatIO(new Bundle {
     val read = new SimpleDataPortR(AWidth, DWidth)
     val write = new SimpleDataPortW(AWidth, DWidth)
     val extn_ready = Input(Bool())
     // For debug
-//    val indicator = Output(Bool())
+    val indicator = Output(Bool())
   })
   // define functions
   def test(): Bool = rd_r(0) === DATA1 && rd_r(1) === DATA2 && rd_r(2) === DATA3
@@ -54,13 +57,14 @@ class MemAccessByAXI extends FPGAModule {
   }
 
   io.write.req.valid := curr_state_w === sIdle && next_state_w === sWrite
-  io.write.req.strb := ~0.U((DWidth/8).W)
-  io.write.req.addr := BaseAddr + (w_cnt << 2)
+//  io.write.req.strb := ~0.U((DWidth/8).W)
+  io.write.req.strb := 1.U << w_cnt
+  io.write.req.addr := BaseAddr + w_cnt
   io.write.req.data := MuxLookup(w_cnt, 0.U)(
     Seq(
       0.U -> DATA1,
-      1.U -> DATA2,
-      2.U -> DATA3,
+      1.U -> (DATA2 << 8.U).asUInt,
+      2.U -> (DATA3 << 16.U).asUInt,
     )
   )
 
@@ -82,7 +86,7 @@ class MemAccessByAXI extends FPGAModule {
   }
 
   io.read.req.valid := curr_state_r === sIdle && next_state_r === sRead
-  io.read.req.addr := BaseAddr + (r_cnt << 2)
+  io.read.req.addr := BaseAddr + r_cnt
   when(io.read.resp.valid) {
     rd_r(r_cnt) := io.read.resp.data
   }
@@ -96,5 +100,5 @@ class MemAccessByAXI extends FPGAModule {
     triggered_r := false.B
   }
 
-//  io.indicator := test()
+  io.indicator := rd_r(2)(23, 0) === "haadead".U
 }

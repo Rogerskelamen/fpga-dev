@@ -10,7 +10,7 @@ class PixelGet(config: ErrDiffConfig) extends Module {
     val in = Flipped(Decoupled(new Bundle {
       val pos = UInt(config.posWidth.W)
     }))
-    val read = new SimpleDataPortR(32, dwidth = config.pixelWidth)
+    val read = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.pixelWidth)
     val pb   = Flipped(new BramNativePortFull)
     val out  = Decoupled(new PixelGet2ThreshCalc(config.pixelWidth, config.errorWidth, config.posWidth))
   })

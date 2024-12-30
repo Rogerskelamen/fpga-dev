@@ -9,12 +9,13 @@ import utils.FPGAModule
 case class ErrDiffConfig(
   override val pixelWidth: Int = 8,
   // override val ddrBaseAddr: Int = ???,
-  override val ddrBaseAddr: Int = 0,
+  override val ddrBaseAddr: Int = 0x3800_0000,
+  override val ddrWidth:    Int = 32,
   override val imageRow:    Int = 512,
   override val imageCol:    Int = 512,
   errorWidth:               Int = 8,
   threshold:                Int = 128)
-extends HalftoneConfig(pixelWidth, ddrBaseAddr, imageRow, imageCol)
+extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
@@ -65,7 +66,7 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   when(!io.extn_ready) { triggered := true.B }
 
   // pixel position counter
-  val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz - 1)
+  val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
 
   // Execution trigger
   val pipeExe = (writeBinary.io.out.fire || (!io.extn_ready && !triggered)) && !posWrap

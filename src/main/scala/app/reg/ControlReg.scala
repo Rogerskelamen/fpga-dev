@@ -15,7 +15,7 @@ class ControlReg extends FPGAModule {
     val read  = Flipped(new SimpleDataPortR(AWidth, DWidth))
     val write = Flipped(new SimpleDataPortW(AWidth, DWidth))
     // for debug
-    val indicator = Output(Bool())
+//    val indicator = Output(Bool())
   })
 
   io.read <> DontCare
@@ -36,5 +36,5 @@ class ControlReg extends FPGAModule {
     }
   }
 
-  io.indicator := ledReg === 1.U
+//  io.indicator := ledReg === 1.U
 }

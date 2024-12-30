@@ -54,7 +54,7 @@ class AXI4MasterModule(val awidth: Int,
    * You don't know who comes first(AW or W?)
    * Anyway, there are two rules you should always obey:
    * 1. valid should be de-asserted immediately when handshake finishes
-   * 2. B depends on AW/W (W weekly depends on AW)
+   * 2. B depends on AW/W (W weakly depends on AW)
    */
   val aw_fire_r = RegInit(false.B)
   val w_fire_r = RegInit(false.B)
