@@ -12,6 +12,18 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
     val out = Decoupled(new ErrorOut2WriteBinary(config.posWidth))
   })
 
+  // Check Boundary
+  /** note that '%' operator may take a lot to synthesis
+    * But for now, config.imageCol is a power of 2,
+    * so it will be synthesised as a simple bitwise operation
+    */
+  def isFirstColumn(pos: UInt): Bool =
+    pos % config.imageCol.U === 0.U
+  def isLastColumn(pos: UInt): Bool =
+    pos % config.imageCol.U === (config.imageCol - 1).U
+  def isLastRow(pos: UInt): Bool =
+    pos >= (config.imageSiz - config.imageCol).U
+
   // Registers(for value storage and state presentation)
   val pos         = Reg(UInt(config.posWidth.W))
   val bval        = Reg(Bool())
@@ -22,19 +34,18 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
   io.out.valid := resultValid
   io.in.ready  := !busy
   // useless signals
-  io.pa       := DontCare
-  io.pa.en    := false.B
-  io.pa.we    := false.B
+  io.pa    := DontCare
+  io.pa.en := false.B
+  io.pa.we := false.B
 
-  /* TODO: check if position is out of boundary */
   val diffRight      = pos + 1.U
-  val diffBelowRight = pos + config.imageCol.U + 1.U
+  val diffBelowRight = pos + (config.imageCol + 1).U
   val diffBelow      = pos + config.imageCol.U
-  val diffBelowLeft  = pos + config.imageCol.U - 1.U
+  val diffBelowLeft  = pos + (config.imageCol - 1).U
   val (cnt, cntWrap) = Counter(busy && !resultValid, 7)
 
   // Emit outputs
-  io.out.bits.pos := pos
+  io.out.bits.pos  := pos
   io.out.bits.bval := bval
 
   when(busy) {
@@ -42,15 +53,26 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
      * Write to Error Cache
      */
     when(!resultValid) {
-      // 0. when to enable bram data transfer
-      io.pa.en := true.B
+      // 0. when to enable bram data transfer(must within the boundary)
+      io.pa.en := MuxLookup(cnt, false.B)(
+        Seq(
+          0.U -> !isLastColumn(pos),
+          1.U -> !isLastRow(pos),
+          2.U -> !(isFirstColumn(pos) || isLastRow(pos)),
+          3.U -> !isLastColumn(pos),
+          4.U -> !(isLastColumn(pos) || isLastRow(pos)),
+          5.U -> !isLastRow(pos),
+          6.U -> !(isFirstColumn(pos) || isLastRow(pos))
+        )
+      )
+
       io.pa.addr := MuxLookup(cnt, 0.U)(
         Seq(
           // 1. read from right, below, below left
           0.U -> diffRight,
           1.U -> diffBelow,
           2.U -> diffBelowLeft,
-          // 2. write
+          // 2. write to 4 diff area
           3.U -> diffRight,
           4.U -> diffBelowRight,
           5.U -> diffBelow,
@@ -63,7 +85,7 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
         is(3.U) { errOut(3) := errOut(3) + io.pa.dout.asSInt }
       }
       when(cnt > 2.U) { // write
-        io.pa.we  := true.B
+        io.pa.we  := io.pa.en
         io.pa.din := errOut((cnt - 3.U)(1, 0)).asUInt
       }
     }

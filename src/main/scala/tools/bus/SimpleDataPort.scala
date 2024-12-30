@@ -15,6 +15,7 @@ class SimpleDataPortReqR(val awidth: Int) extends Bundle {
 }
 
 class SimpleDataPortReqW(val awidth: Int, val dwidth: Int) extends Bundle {
+  require(dwidth % 8 == 0, "must provide a data width aligned to 8 bits")
   val addr  = Output(UInt(awidth.W))
   val data  = Output(UInt(dwidth.W))
   val strb  = Output(UInt((dwidth/8).W))

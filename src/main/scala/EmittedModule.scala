@@ -12,6 +12,6 @@ object EmittedModule {
 //    () => new AXI4SlaveModule(32, 32),
 //    () => new BramAccess,
     () => new ErrorOut(ErrDiffConfig()),
-    () => new ErrDiffCore(ErrDiffConfig()),
+//    () => new ErrDiffCore(ErrDiffConfig()),
   )
 }
