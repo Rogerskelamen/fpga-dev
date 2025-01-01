@@ -9,7 +9,7 @@ object EmittedModule {
   // So the function object format is necessary
   // Rather than just Class instantiation
   def ExposedModules: List[() => RawModule] = List(
-    () => new MemAccessByAXI,
+//    () => new MemAccessByAXI,
 //    () => new ControlReg,
 //    () => new AXI4MasterModule(32, 32),
 //    () => new AXI4SlaveModule(32, 32),

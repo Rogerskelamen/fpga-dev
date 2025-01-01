@@ -19,11 +19,12 @@ extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val read       = new SimpleDataPortR(32, dwidth = config.pixelWidth)
-    val write      = new SimpleDataPortW(32, dwidth = config.pixelWidth)
+    val read       = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
+    val write      = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
     val pb         = Flipped(new BramNativePortFull)
     val pa         = Flipped(new BramNativePortFull)
     val extn_ready = Input(Bool())
+    val indicator = Output(Bool())
   })
 
   final def wrapModuleWithRst[T <: RawModule](subModule: T): T = {
@@ -67,14 +68,20 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
 
   // pixel position counter
   val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
+  val indicator_r = RegInit(false.B)
+  when(posWrap) {
+    indicator_r := true.B
+  }
 
   // Execution trigger
   val pipeExe = (writeBinary.io.out.fire || (!io.extn_ready && !triggered)) && !posWrap
-  pixelGet.io.in.valid    := pipeExe
+  pixelGet.io.in.valid    := pipeExe && !indicator_r
   pixelGet.io.in.bits.pos := pos
 
   io.pb    <> pixelGet.io.pb
   io.read  <> pixelGet.io.read
   io.pa    <> errorOut.io.pa
   io.write <> writeBinary.io.write
+
+  io.indicator := indicator_r
 }

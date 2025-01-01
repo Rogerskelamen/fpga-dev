@@ -37,6 +37,7 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
   io.pa    := DontCare
   io.pa.en := false.B
   io.pa.we := false.B
+  io.pa.din := 0.U
 
   val diffRight      = pos + 1.U
   val diffBelowRight = pos + (config.imageCol + 1).U

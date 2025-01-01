@@ -12,8 +12,8 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
 
   // Registers(for value storage and state presentation)
   val pos = Reg(UInt(config.posWidth.W))
-  val pix = Reg(UInt((config.pixelWidth+2).W)) // expand 2 bit
-  val err = Reg(SInt((config.errorWidth+2).W)) // expand 2 bit
+  val pix = Reg(UInt((config.pixelWidth + 2).W)) // expand 2 bits
+  val err = Reg(SInt((config.errorWidth + 2).W)) // expand 2 bits
 
   val busy        = RegInit(false.B)
   val resultValid = RegInit(false.B)

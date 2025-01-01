@@ -10,7 +10,7 @@ class PixelGet(config: ErrDiffConfig) extends Module {
     val in = Flipped(Decoupled(new Bundle {
       val pos = UInt(config.posWidth.W)
     }))
-    val read = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.pixelWidth)
+    val read = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
     val pb   = Flipped(new BramNativePortFull)
     val out  = Decoupled(new PixelGet2ThreshCalc(config.pixelWidth, config.errorWidth, config.posWidth))
   })
@@ -35,6 +35,7 @@ class PixelGet(config: ErrDiffConfig) extends Module {
   // begin to read when handshake finishes
   io.read.req.valid := io.in.fire
   io.read.req.addr  := io.in.bits.pos + config.ddrBaseAddr.U
+  val offset = pos(1, 0)
 
   /*
    * Read error from bram
@@ -44,7 +45,7 @@ class PixelGet(config: ErrDiffConfig) extends Module {
 
   when(busy) {
     when(io.read.resp.valid) {
-      pix := io.read.resp.data
+      pix := io.read.resp.data >> (offset << 3.U)
     }
     err := io.pb.dout
 
