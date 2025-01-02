@@ -7,7 +7,7 @@ VSIM_DIR = ./src/main/cc/sim
 
 TARGET = $(abspath $(VERILOG_GEN)/$(TOPNAME).v)
 BIN = $(abspath $(BUILD_DIR)/$(TOPNAME))
-SRC = $(abspath $(VSIM_DIR)/tb_$(TOPNAME).cpp)
+SRCS = $(shell find $(abspath $(VSIM_DIR)/tb_$(TOPNAME)) -name "*.cpp" -or -name "*.cc" -or -name "*.cc")
 
 # Waveform
 WAVEFILE = waveform.vcd
@@ -32,13 +32,13 @@ else
 	find ./verilog-gen -type f -exec sed -i -e 's/_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1/g' {} +
 endif
 
-wave: sim
+wave: $(WAVEFILE)
 	@gtkwave $(WAVEFILE) -r $(WAVECONFIG)
 
 sim: $(BIN)
 	@$(BIN)
 
-$(BIN): $(TARGET) $(SRC)
+$(BIN): $(TARGET) $(SRCS)
 	@mkdir -p $(BUILD_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \

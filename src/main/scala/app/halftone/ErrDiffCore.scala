@@ -64,7 +64,7 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
 
   // Registers
   val triggered = RegInit(false.B)
-  when(!io.extn_ready) { triggered := true.B }
+  when(EdgeDetector(io.extn_ready, false)) { triggered := true.B }
 
   // pixel position counter
   val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
