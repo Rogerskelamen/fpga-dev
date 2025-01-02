@@ -4,15 +4,15 @@ import app.halftone.errdiff.{ErrorOut, PixelGet, ThreshCalc, WriteBinary}
 import chisel3._
 import chisel3.util.Counter
 import tools.bus.{BramNativePortFull, SimpleDataPortR, SimpleDataPortW}
-import utils.FPGAModule
+import utils.{EdgeDetector, FPGAModule}
 
 case class ErrDiffConfig(
   override val pixelWidth: Int = 8,
   // override val ddrBaseAddr: Int = ???,
   override val ddrBaseAddr: Int = 0x3800_0000,
   override val ddrWidth:    Int = 32,
-  override val imageRow:    Int = 512,
-  override val imageCol:    Int = 512,
+  override val imageRow:    Int = 16,
+  override val imageCol:    Int = 16,
   errorWidth:               Int = 8,
   threshold:                Int = 128)
 extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
@@ -68,13 +68,14 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
 
   // pixel position counter
   val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
+  val next_pix_flag = EdgeDetector(writeBinary.io.out.fire)
   val indicator_r = RegInit(false.B)
   when(posWrap) {
     indicator_r := true.B
   }
 
   // Execution trigger
-  val pipeExe = (writeBinary.io.out.fire || (!io.extn_ready && !triggered)) && !posWrap
+  val pipeExe = next_pix_flag || (!io.extn_ready && !triggered)
   pixelGet.io.in.valid    := pipeExe && !indicator_r
   pixelGet.io.in.bits.pos := pos
 
