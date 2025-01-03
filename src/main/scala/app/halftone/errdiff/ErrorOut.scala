@@ -13,7 +13,8 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
   })
 
   // Check Boundary
-  /** note that '%' operator may take a lot to synthesis
+  /** @note
+    * the '%' operator may take a lot to synthesis
     * But for now, config.imageCol is a power of 2,
     * so it will be synthesised as a simple bitwise operation
     */

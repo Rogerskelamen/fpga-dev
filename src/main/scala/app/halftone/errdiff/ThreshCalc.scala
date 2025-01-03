@@ -29,7 +29,7 @@ class ThreshCalc(config: ErrDiffConfig) extends Module {
   /*
    * Compare with Threshold
    */
-  /** Explain these variable range
+  /** Explain these variables range
     * pix = [0, 255], err = [-127, 127], pix + err = [-127, 382]
     * Because err can be negative,
     * So make vars as SInt when calculating

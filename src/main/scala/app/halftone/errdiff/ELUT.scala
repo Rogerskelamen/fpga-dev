@@ -5,7 +5,7 @@ import chisel3.experimental.VecLiterals.AddVecLiteralConstructor
 import chisel3.util.MuxLookup
 
 /** Pure Combinatorial Logic Circuit
-  * @param errorWidth
+  * @param errorWidth Error bit width
   */
 class ELUT(val errorWidth: Int) extends RawModule {
   val io = IO(new Bundle {
@@ -13,6 +13,11 @@ class ELUT(val errorWidth: Int) extends RawModule {
     val out = Output(Vec(4, SInt(errorWidth.W)))
   })
 
+  /** @note
+    * The 'round' function in scala is "Round Half Up"(similar to python)
+    * It's not like the C99 'round' function which obeys the rule
+    * "Round Half Away from Zero"
+    */
   private def errorVecLit(err: Int): Vec[SInt] = {
     val errF = err.toFloat
     Vec(4, SInt(errorWidth.W)).Lit(
