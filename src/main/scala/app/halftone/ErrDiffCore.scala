@@ -11,8 +11,8 @@ case class ErrDiffConfig(
   // override val ddrBaseAddr: Int = ???,
   override val ddrBaseAddr: Int = 0x3800_0000,
   override val ddrWidth:    Int = 32,
-  override val imageRow:    Int = 16,
-  override val imageCol:    Int = 16,
+  override val imageRow:    Int = 512,
+  override val imageCol:    Int = 512,
   errorWidth:               Int = 8,
   threshold:                Int = 128)
 extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)

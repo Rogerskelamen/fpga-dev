@@ -17,6 +17,9 @@ WAVECONFIG = $(WORK_DIR)/.gtkwave.config
 # Verilog simulator
 VERILATOR = verilator
 VERILATOR_CFLAGS = -MMD --cc --build --trace
+INC_PATH = $(WORK_DIR)/src/main/cc/include
+INCFLAGS = $(addprefix -I, $(INC_PATH))
+CXXFLAGS += $(INCFLAGS)
 
 # Environment check
 ifeq ($(OS), Windows_NT)
@@ -43,6 +46,7 @@ $(BIN): $(VSRCS) $(SRCS)
 	@mkdir -p $(BUILD_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
+		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--exe --Mdir $(BUILD_DIR)/obj_dir -o $(abspath $(BIN))
 
 clean:

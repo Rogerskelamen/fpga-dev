@@ -13,6 +13,7 @@
 !*.scala
 !*.cpp
 !*.cc
+!*.[cSh]
 !*.ps1
 !*.py
 !Makefile

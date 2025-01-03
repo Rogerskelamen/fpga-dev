@@ -2,15 +2,25 @@
 #include <verilated_vcd_c.h>
 #include "VErrDiffCore.h"
 #include "VErrDiffCore___024root.h"
+#include "debug.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
 
-#define IMG_H 16
-#define IMG_W 16
+#define IMG_H 512
+#define IMG_W 512
 #define THRES 128
+
+#define AssertExit(cond, format, ...) \
+  do { \
+    if (!(cond)) { \
+      fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ## __VA_ARGS__); \
+      exit_sim(); \
+      assert(cond); \
+    } \
+  } while (0)
 
 // global variables
 static int errCache[IMG_H][IMG_W] = {0};
@@ -110,10 +120,7 @@ int main() {
 
       step_and_dump_wave(); // enter ErrorOut
       uint8_t bval = top->rootp->ErrDiffCore__DOT__errorOut__DOT__bval * 0xff;
-      if (bval != img[i][j]) {
-        fprintf(stderr, "bval[%#x] != result[%#x], at row[%d] column[%d]\n", bval, img[i][j], i, j);
-        exit_sim(); assert(0);
-      }
+      AssertExit(bval == img[i][j], "bval[%#x] != result[%#x], at row[%d] column[%d]", bval, img[i][j], i, j);
 
       int errOut[4];
       errOut[0] = (int8_t)top->rootp->ErrDiffCore__DOT__errorOut__DOT__errOut_0;
@@ -121,10 +128,7 @@ int main() {
       errOut[2] = (int8_t)top->rootp->ErrDiffCore__DOT__errorOut__DOT__errOut_2;
       errOut[3] = (int8_t)top->rootp->ErrDiffCore__DOT__errorOut__DOT__errOut_3;
       for (int k = 0; k < 4; k++) {
-        if (errOut[k] != errdiff[k]) {
-          fprintf(stderr, "errOut%d[%d] != result[%d], at row[%d] column[%d], err = %d\n", k, errOut[k], errdiff[k], i, j, err);
-          exit_sim(); assert(0);
-        }
+        AssertExit(errOut[k] == errdiff[k], "errOut%d[%d] != result[%d], at row[%d] column[%d], err = %d", k, errOut[k], errdiff[k], i, j, err);
       }
 
       top->pa_dout = check_bound_then_acc(i, j+1); step_and_dump_wave(); // right
@@ -143,5 +147,6 @@ int main() {
     }
   }
 
+  OK("Differential tests all passed, safe exit");
   exit_sim();
 }
