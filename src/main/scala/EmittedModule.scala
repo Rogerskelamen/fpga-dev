@@ -1,5 +1,4 @@
-import app.halftone.errdiff.ImageDumpRead
-import app.halftone.{ErrDiffConfig, ErrDiffCore, HalftoneArbiter}
+import app.halftone.{ErrDiffConfig, ErrDiffCore}
 import app.mem.MemAccessByAXI
 import app.reg.ControlReg
 import chisel3.RawModule
@@ -16,7 +15,5 @@ object EmittedModule {
 //    () => new AXI4SlaveModule(32, 32),
 //    () => new BramAccess,
     () => new ErrDiffCore(ErrDiffConfig()),
-//    () => new ImageDumpRead(ErrDiffConfig()),
-//    () => new HalftoneArbiter(ErrDiffConfig())
   )
 }
