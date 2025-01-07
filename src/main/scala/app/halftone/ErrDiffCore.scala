@@ -2,9 +2,9 @@ package app.halftone
 
 import app.halftone.errdiff.{ErrorOut, PixelGet, ThreshCalc, WriteBinary}
 import chisel3._
-import chisel3.util.Counter
-import tools.bus.{BramNativePortFull, SimpleDataPortR, SimpleDataPortW}
-import utils.{EdgeDetector, FPGAModule}
+import chisel3.util.{Counter, Decoupled}
+import tools.bus.BramNativePortFull
+import utils.EdgeDetector
 
 case class ErrDiffConfig(
   override val pixelWidth: Int = 8,
@@ -19,39 +19,41 @@ case class ErrDiffConfig(
   bramAddrBits:             Int = 18)
 extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
 
-class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
-  val io = FlatIO(new Bundle {
-    val read       = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val write      = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val pb         = Flipped(new BramNativePortFull(config.bramDataBits, config.bramAddrBits))
-    val pa         = Flipped(new BramNativePortFull(config.bramDataBits, config.bramAddrBits))
-    val extn_ready = Input(Bool())
-    val indicator = Output(Bool())
-  })
+/** Bram Port A: serve for writing
+  * Bram Port B: Serve for reading
+  */
+class BramNativePorts(val bramDataBits: Int, val bramAddrBits: Int) extends Bundle {
+  val pb = Flipped(new BramNativePortFull(bramDataBits, bramAddrBits))
+  val pa = Flipped(new BramNativePortFull(bramDataBits, bramAddrBits))
+}
 
-  final def wrapModuleWithRst[T <: RawModule](subModule: T): T = {
-    withClockAndReset(fpga_clk, (~fpga_rst).asBool) { subModule }
-  }
+class ErrDiffCore(config: ErrDiffConfig) extends Module {
+  val io = FlatIO(new Bundle {
+    val in    = Flipped(Decoupled())
+    val img   = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val cache = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val out   = Decoupled()
+  })
 
   /*
    * All Four Stages
-   * multi-cycle none pipeline first
+   * multi-cycle no-pipeline first
    */
-  // 3 cycles at least
-  // get pixel(ddr) and err(bram)
-  val pixelGet = wrapModuleWithRst(Module(new PixelGet(config)))
+  // 1 cycle
+  // get pixel(bram) and err(bram)
+  val pixelGet = Module(new PixelGet(config))
 
   // 1 cycle
   // calculate, get binary value and four error values(LUT)
-  val threshCalc = wrapModuleWithRst(Module(new ThreshCalc(config)))
+  val threshCalc = Module(new ThreshCalc(config))
 
   // 7 cycles
   // output to err cache
-  val errorOut = wrapModuleWithRst(Module(new ErrorOut(config)))
+  val errorOut = Module(new ErrorOut(config))
 
-  // 3 cycles at least
-  // write binary value(ddr)
-  val writeBinary = wrapModuleWithRst(Module(new WriteBinary(config)))
+  // 1 cycle
+  // write binary value(bram)
+  val writeBinary = Module(new WriteBinary(config))
 
   /*
    * Logics
@@ -64,27 +66,40 @@ class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   // useless signals
   writeBinary.io.out.ready := pixelGet.io.in.ready
 
+  // IO ports
+  io.img.pb   <> pixelGet.io.img // read pixel
+  io.img.pa   <> writeBinary.io.img // write pixel
+  io.cache.pb <> pixelGet.io.cache // get error
+  io.cache.pa <> errorOut.io.pa // write error
+
   // Registers
   val triggered = RegInit(false.B)
-  when(EdgeDetector(io.extn_ready, false)) { triggered := true.B }
+  when(io.in.fire) { triggered := true.B }
+  val busy        = RegInit(false.B)
+  val resultValid = RegInit(false.B)
+
+  io.out.valid := resultValid
+  io.in.ready  := !busy
 
   // pixel position counter
   val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
-  val next_pix_flag = EdgeDetector(writeBinary.io.out.fire)
-  val indicator_r = RegInit(false.B)
-  when(posWrap) {
-    indicator_r := true.B
-  }
-
+  val next_pix_flag  = EdgeDetector(writeBinary.io.out.fire)
   // Execution trigger
-  val pipeExe = next_pix_flag || (!io.extn_ready && !triggered)
-  pixelGet.io.in.valid    := pipeExe && !indicator_r
+  val pipeExe = next_pix_flag || io.in.fire
+  pixelGet.io.in.valid    := pipeExe && !resultValid
   pixelGet.io.in.bits.pos := pos
 
-  io.pb    <> pixelGet.io.pb
-  io.read  <> pixelGet.io.read
-  io.pa    <> errorOut.io.pa
-  io.write <> writeBinary.io.write
-
-  io.indicator := indicator_r
+  when(busy) {
+    when(posWrap && writeBinary.io.out.fire) {
+      resultValid := true.B
+    }
+    when(io.out.fire) {
+      busy        := false.B
+      resultValid := false.B
+    }
+  }.otherwise {
+    when(io.in.valid) {
+      busy := true.B
+    }
+  }
 }
