@@ -14,15 +14,17 @@ case class ErrDiffConfig(
   override val imageRow:    Int = 512,
   override val imageCol:    Int = 512,
   errorWidth:               Int = 8,
-  threshold:                Int = 128)
+  threshold:                Int = 128,
+  bramDataBits:             Int = 8,
+  bramAddrBits:             Int = 18)
 extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
 
 class ErrDiffCore(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val read       = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
     val write      = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val pb         = Flipped(new BramNativePortFull)
-    val pa         = Flipped(new BramNativePortFull)
+    val pb         = Flipped(new BramNativePortFull(config.bramDataBits, config.bramAddrBits))
+    val pa         = Flipped(new BramNativePortFull(config.bramDataBits, config.bramAddrBits))
     val extn_ready = Input(Bool())
     val indicator = Output(Bool())
   })

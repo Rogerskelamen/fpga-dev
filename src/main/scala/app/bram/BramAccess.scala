@@ -16,8 +16,8 @@ object BramAccess {
 
 class BramAccess extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val pa = Flipped(new BramNativePortFull) // to write
-    val pb = Flipped(new BramNativePortFull) // to read
+    val pa = Flipped(new BramNativePortFull(8, 18)) // to write
+    val pb = Flipped(new BramNativePortFull(8, 18)) // to read
     // For debug
 //    val indicator = Output(Bool())
   })

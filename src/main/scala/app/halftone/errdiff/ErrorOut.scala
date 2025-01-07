@@ -8,7 +8,7 @@ import tools.bus.BramNativePortFull
 class ErrorOut(config: ErrDiffConfig) extends Module {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new ThreshCalc2ErrorOut(config.posWidth, config.errorWidth)))
-    val pa  = Flipped(new BramNativePortFull)
+    val pa  = Flipped(new BramNativePortFull(config.bramDataBits, config.bramAddrBits))
     val out = Decoupled(new ErrorOut2WriteBinary(config.posWidth))
   })
 
