@@ -47,7 +47,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <assert.h>
 #include <math.h>
 #include "xil_cache.h"
@@ -63,32 +62,32 @@ static u8 img[IMG_H][IMG_W];
 
 static u32
 random_gen(u32 max) {
-	srand(rand());
-	return rand() % max;
+    srand(rand());
+    return rand() % max;
 }
 
 static double
 round_half_up(double x) {
-  return floor(x+0.5);
+    return floor(x+0.5);
 }
 
 static void
 valid_then_acc(int i, int j, int val) {
-	if (0 <= i && i < IMG_H && 0 <= j && j < IMG_W) {
-		errCache[i][j] += val;
-	}
+    if (0 <= i && i < IMG_H && 0 <= j && j < IMG_W) {
+        errCache[i][j] += val;
+    }
 }
 
 int main()
 {
-	// set random seed
-	unsigned int seed = 42;
-	srand(seed);
+    // set random seed
+    unsigned int seed = 42;
+    srand(seed);
 
     Xil_DCacheDisable(); // Disable DCache
 
     char c, a;
-	int data;
+    int data;
 
     print("AXI4 PL DDR TEST!\n\r");
 
@@ -96,30 +95,27 @@ int main()
 
     // generate random numbers to write ddr
     for (int pos = 0; pos < IMG_H*IMG_W; pos++) {
-    	u8 tmp = random_gen(0x100);
-    	img[pos/IMG_H][pos%IMG_W] = tmp;
+        u8 tmp = random_gen(0x100);
+        img[pos/IMG_H][pos%IMG_W] = tmp;
         Xil_Out8(DDRBASE+pos, tmp);
     }
 
     // calculate by ARM Core
     for (int i = 0; i < IMG_H; i++) {
-    	for (int j = 0; j < IMG_W; j++) {
-    		u8 pix = img[i][j];
-    		int err = 0;
-    		// 1. compare with threshold
-    		img[i][j] = pix + errCache[i][j] < THRES ? 0 : 0xff;
-    		if (i == 0 && j == 1) {
-				printf("pix: %d, err: %d, res:%d\n\r", pix, errCache[i][j], img[i][j]);
-			}
-    		// 2. calculate error
-    		err = pix + errCache[i][j] - img[i][j];
+        for (int j = 0; j < IMG_W; j++) {
+            u8 pix = img[i][j];
+            int err = 0;
+            // 1. compare with threshold
+            img[i][j] = pix + errCache[i][j] < THRES ? 0 : 0xff;
+            // 2. calculate error
+            err = pix + errCache[i][j] - img[i][j];
 
-    		// 3. diffuse the error
-    		valid_then_acc(i, j+1, (int)round_half_up(err * 7.0/16));
-    		valid_then_acc(i+1, j-1, (int)round_half_up(err * 3.0/16));
-    		valid_then_acc(i+1, j, (int)round_half_up(err * 5.0/16));
-    		valid_then_acc(i+1, j+1, (int)round_half_up(err * 1.0/16));
-    	}
+            // 3. diffuse the error
+            valid_then_acc(i, j+1, (int)round_half_up(err * 7.0/16));
+            valid_then_acc(i+1, j-1, (int)round_half_up(err * 3.0/16));
+            valid_then_acc(i+1, j, (int)round_half_up(err * 5.0/16));
+            valid_then_acc(i+1, j+1, (int)round_half_up(err * 1.0/16));
+        }
     }
     print("Calculation finished, please trigger hardware\n\r");
 
@@ -128,37 +124,37 @@ int main()
 
     // validate result with software
     for (int i = 0; i < IMG_H; i++) {
-    	for (int j = 0; j < IMG_W; j++) {
-    		u8 res = Xil_In8(DDRBASE + i*IMG_W + j);
-    		if (res != img[i][j]) {
-    			printf("error: the result[%#x] != %#x at row[%d] column[%d]\n\r", res, img[i][j], i, j);
-    			assert(0);
-    		}
-    	}
+        for (int j = 0; j < IMG_W; j++) {
+            u8 res = Xil_In8(DDRBASE + i*IMG_W + j);
+            if (res != img[i][j]) {
+                printf("error: the result[%#x] != %#x at row[%d] column[%d]\n\r", res, img[i][j], i, j);
+                assert(0);
+            }
+        }
     }
     print("All test passed\n\r");
 
     while(1) {
-    	scanf("%c", &c);
-    	scanf("%c", &a);
-    	if(c == 'r') {
-//    		int data = Xil_In32(0x38000000);
-    		switch(a) {
-    		case '1':
-    			data = Xil_In32(0x38000000);
-    			break;
-    		case '2':
-    			data = Xil_In32(0x38000004);
-    			break;
-    		case '3':
-    		    data = Xil_In32(0x38000008);
-    		    break;
-    		default:
-    			data = Xil_In32(0x38000000);
-    			break;
-    		}
-			printf("%#x\n\r", data);
-    	}
+        scanf("%c", &c);
+        scanf("%c", &a);
+        if(c == 'r') {
+            // int data = Xil_In32(0x38000000);
+            switch(a) {
+                case '1':
+                    data = Xil_In32(0x38000000);
+                    break;
+                case '2':
+                    data = Xil_In32(0x38000004);
+                    break;
+                case '3':
+                    data = Xil_In32(0x38000008);
+                    break;
+                default:
+                    data = Xil_In32(0x38000000);
+                    break;
+            }
+            printf("%#x\n\r", data);
+        }
     }
 
     return 0;
