@@ -41,11 +41,11 @@ class MemAccessByAXI extends FPGAModule {
   val (w_cnt, w_cnt_wrap) =
     Counter(curr_state_w === sWrite && next_state_w === sIdle, 3)
 
-  /** :NOTE:
-   * Be careful when using two state signals to create FSM
-   * notice that next_state is wire type not reg,
-   * so next_state won't stay the same when there is no condition
-   */
+  /** @note
+    * Be careful when using two state signals to create FSM
+    * notice that next_state is wire type not reg,
+    * so next_state won't stay the same when there is no condition
+    */
   switch(curr_state_w) {
     is(sIdle) {
       when(!io.extn_ready && !triggered_w) { next_state_w := sWrite }

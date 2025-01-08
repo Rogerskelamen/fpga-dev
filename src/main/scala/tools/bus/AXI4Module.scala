@@ -49,13 +49,13 @@ class AXI4MasterModule(val awidth: Int,
   /*
    * FSM for Write transaction
    */
-  /**
-   * Write Transaction is different from Read because
-   * You don't know who comes first(AW or W?)
-   * Anyway, there are two rules you should always obey:
-   * 1. valid should be de-asserted immediately when handshake finishes
-   * 2. B depends on AW/W (W weakly depends on AW)
-   */
+  /** @note
+    * Write Transaction is different from Read because
+    * You don't know who comes first(AW or W?)
+    * Anyway, there are two rules you should always obey:
+    * 1. valid should be de-asserted immediately when handshake finishes
+    * 2. B depends on AW/W (W weakly depends on AW)
+    */
   val aw_fire_r = RegInit(false.B)
   val w_fire_r = RegInit(false.B)
   when(io.axi.aw.fire) { aw_fire_r := true.B }
@@ -122,11 +122,10 @@ class AXI4SlaveModule(val awidth: Int,
   /*
    * FSM for Read transaction
    */
-  /**
-   * :NOTE:
-   * Slave module shouldn't be such quick to give a response(no matter read or write)
-   * "resp.valid" signal should be asserted at least one cycle later
-   */
+  /** @note
+    * Slave module shouldn't be such quick to give a response(no matter read or write)
+    * "resp.valid" signal should be asserted at least one cycle later
+    */
   switch(rstate) {
     is(sIdle) {
       when(io.axi.ar.fire) { rstate := sWaitValid }
