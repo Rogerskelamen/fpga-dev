@@ -83,9 +83,8 @@ class ErrDiffCore(config: ErrDiffConfig) extends Module {
 
   // pixel position counter
   val (pos, posWrap) = Counter(writeBinary.io.out.fire, config.imageSiz)
-  val next_pix_flag  = EdgeDetector(writeBinary.io.out.fire)
   // Execution trigger
-  val pipeExe = next_pix_flag || io.in.fire
+  val pipeExe = EdgeDetector(writeBinary.io.out.fire || io.in.fire)
   pixelGet.io.in.valid    := pipeExe && !resultValid
   pixelGet.io.in.bits.pos := pos
 

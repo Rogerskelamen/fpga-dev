@@ -97,7 +97,7 @@ int main() {
   // init reset
   top->reset = 1; top->in_valid = 0;
   step_and_dump_wave(5);
-  top->reset = 0; step_and_dump_wave();
+  top->reset = 0;
 
   // trigger hardware
   top->in_valid = 1; step_and_dump_wave();
