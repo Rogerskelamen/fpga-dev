@@ -24,6 +24,8 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
     pos % config.imageCol.U === (config.imageCol - 1).U
   def isLastRow(pos: UInt): Bool =
     pos >= (config.imageSiz - config.imageCol).U
+  def isFirstRow(pos: UInt): Bool =
+    pos < config.imageCol.U
 
   // Registers(for value storage and state presentation)
   val pos         = Reg(UInt(config.posWidth.W))
@@ -58,9 +60,11 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
       // 0. when to enable bram data transfer(must within the boundary)
       io.pa.en := MuxLookup(cnt, false.B)(
         Seq(
-          0.U -> !isLastColumn(pos),
-          1.U -> !isLastRow(pos),
-          2.U -> !(isFirstColumn(pos) || isLastRow(pos)),
+          // read
+          0.U -> !(isLastColumn(pos) || isFirstRow(pos)),
+          1.U -> !(isLastRow(pos) || isFirstRow(pos)),
+          2.U -> !(isFirstColumn(pos) || isLastRow(pos) || isFirstRow(pos)),
+          // write
           3.U -> !isLastColumn(pos),
           4.U -> !(isLastColumn(pos) || isLastRow(pos)),
           5.U -> !isLastRow(pos),
