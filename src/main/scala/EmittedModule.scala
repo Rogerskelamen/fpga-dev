@@ -1,8 +1,5 @@
-import app.halftone.{ErrDiffConfig, ErrDiffCore, ErrDiffCoreWrapper}
-import app.mem.MemAccessByAXI
-import app.reg.ControlReg
+import app.halftone.{ErrDiffConfig, ErrDiffCoreWrapper}
 import chisel3.RawModule
-import tools.bus.AXI4MasterModule
 
 object EmittedModule {
   // Chisel Module needs to be created in a certain `builder context`
@@ -13,7 +10,6 @@ object EmittedModule {
 //    () => new ControlReg,
 //    () => new AXI4MasterModule(32, 32),
 //    () => new AXI4SlaveModule(32, 32),
-//    () => new BramAccess,
-    () => new ErrDiffCoreWrapper(ErrDiffConfig()),
+    () => new ErrDiffCoreWrapper(ErrDiffConfig())
   )
 }
