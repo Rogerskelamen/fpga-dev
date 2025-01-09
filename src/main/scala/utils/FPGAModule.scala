@@ -17,10 +17,13 @@ abstract class FPGAModule(rstN: Boolean = true)
   fpga_clk.suggestName(clkFPGAName)
   fpga_rst.suggestName(rstFPGAName)
 
+  // when reset is asserted, low or high voltage
+  final private def active_rst: Bool = if (rstN) (~fpga_rst).asBool else fpga_rst
+
   override protected def implicitClock: Clock = fpga_clk
-  override protected def implicitReset: Reset = if (rstN) (~fpga_rst).asBool else fpga_rst
+  override protected def implicitReset: Reset = active_rst
 
   final def wrapModuleWithRst[T <: RawModule](subModule: T): T = {
-    withClockAndReset(fpga_clk, (~fpga_rst).asBool) { subModule }
+    withClockAndReset(fpga_clk, active_rst) { subModule }
   }
 }

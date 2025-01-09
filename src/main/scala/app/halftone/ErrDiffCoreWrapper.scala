@@ -6,7 +6,7 @@ import chisel3.util.{is, switch, Enum}
 import tools.bus.{SimpleDataPortR, SimpleDataPortW}
 import utils.FPGAModule
 
-/** Bram Port A: serve for writing
+/** Bram Port A: serve for writing <br>
   * Bram Port B: Serve for reading
   */
 class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {

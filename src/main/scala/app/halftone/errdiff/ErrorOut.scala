@@ -18,13 +18,13 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
     * But for now, config.imageCol is a power of 2,
     * so it will be synthesised as a simple bitwise operation
     */
-  def isFirstColumn(pos: UInt): Bool =
+  private def isFirstColumn(pos: UInt): Bool =
     pos % config.imageCol.U === 0.U
-  def isLastColumn(pos: UInt): Bool =
+  private def isLastColumn(pos: UInt): Bool =
     pos % config.imageCol.U === (config.imageCol - 1).U
-  def isLastRow(pos: UInt): Bool =
+  private def isLastRow(pos: UInt): Bool =
     pos >= (config.imageSiz - config.imageCol).U
-  def isFirstRow(pos: UInt): Bool =
+  private def isFirstRow(pos: UInt): Bool =
     pos < config.imageCol.U
 
   // Registers(for value storage and state presentation)

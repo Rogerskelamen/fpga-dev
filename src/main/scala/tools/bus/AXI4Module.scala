@@ -9,7 +9,7 @@ class AXI4MasterModule(val awidth: Int,
                        val dwidth: Int,
                        val lite: Boolean = true) extends FPGAModule {
   /**
-   * data/address width of AXI4 bus is fixed for now
+   * data/address width of AXI4 bus is fixed for now,
    * data width = address width = 32 bits
    */
   val io = FlatIO(new Bundle {
