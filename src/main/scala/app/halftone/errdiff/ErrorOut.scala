@@ -62,8 +62,8 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
         Seq(
           // read
           0.U -> !(isLastColumn(pos) || isFirstRow(pos)),
-          1.U -> !(isLastRow(pos) || isFirstRow(pos)),
-          2.U -> !(isFirstColumn(pos) || isLastRow(pos) || isFirstRow(pos)),
+          1.U -> !(isFirstColumn(pos) || isLastRow(pos)),
+          2.U -> !(isFirstColumn(pos) || isLastRow(pos)),
           // write
           3.U -> !isLastColumn(pos),
           4.U -> !(isLastColumn(pos) || isLastRow(pos)),
@@ -86,8 +86,16 @@ class ErrorOut(config: ErrDiffConfig) extends Module {
         )
       )
       switch(cnt) { // read
-        is(1.U) { errOut(0) := errOut(0) + io.pa.dout.asSInt }
-        is(2.U) { errOut(2) := errOut(2) + io.pa.dout.asSInt }
+        is(1.U) {
+          errOut(0) := errOut(0) + Mux(
+            isFirstRow(pos),
+            0.S, io.pa.dout.asSInt)
+        }
+        is(2.U) {
+          errOut(2) := errOut(2) + Mux(
+            isFirstColumn(pos),
+            0.S, io.pa.dout.asSInt)
+        }
         is(3.U) { errOut(3) := errOut(3) + io.pa.dout.asSInt }
       }
       when(cnt > 2.U) { // write
