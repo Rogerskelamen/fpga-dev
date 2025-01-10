@@ -67,10 +67,15 @@ class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
   /*
    * FSM
    */
-  val sRead :: sWork :: sWrite :: Nil = Enum(3)
+  val sIdle :: sRead :: sWork :: sWrite :: Nil = Enum(4)
   val state = RegInit(sRead)
 
   switch(state) {
+    is(sIdle) {
+      start_r := false.B
+      end_r := false.B
+      when(imageDumpR.io.in.fire) { state := sRead }
+    }
     is(sRead) {
       when(imageDumpR.io.out.fire) { state := sWork }
     }
@@ -87,9 +92,10 @@ class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
   when(core.io.out.fire) { end_r := true.B }
   when(imageDumpW.io.out.fire) { indicator_r := true.B }
   // State Registers
-  ctrlReg.io.reg.done  := indicator_r
   ctrlReg.io.reg.start := start_r
   ctrlReg.io.reg.end   := end_r
+  ctrlReg.io.reg.done  := indicator_r
 
+  // indicate the finish
   io.indicator := indicator_r
 }
