@@ -1,21 +1,23 @@
 package app.halftone
 
-import app.halftone.errdiff.{ImageDumpRead, ImageDumpWrite}
+import app.halftone.errdiff.{ErrDiffReg, ImageDumpRead, ImageDumpWrite}
 import chisel3._
-import chisel3.util.{is, switch, Enum}
+import chisel3.util.{Enum, is, switch}
 import tools.bus.{SimpleDataPortR, SimpleDataPortW}
-import utils.FPGAModule
+import utils.{EdgeDetector, FPGAModule}
 
 /** Bram Port A: serve for writing <br>
   * Bram Port B: Serve for reading
   */
 class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
-    val read       = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val write      = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val img        = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
-    val cache      = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
-    val extn_ready = Input(Bool())
+    val read    = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
+    val write   = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
+    val img     = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val cache   = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val read_r  = Flipped(new SimpleDataPortR(config.ddrWidth, config.ddrWidth))
+    val write_r = Flipped(new SimpleDataPortW(config.ddrWidth, config.ddrWidth))
+//    val extn_ready = Input(Bool())
     val indicator  = Output(Bool())
   })
 
@@ -31,19 +33,25 @@ class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
   // 3. dump image from bram to ddr
   val imageDumpW = wrapModuleWithRst(Module(new ImageDumpWrite(config)))
 
+  // Other components
+  val ctrlReg = wrapModuleWithRst(Module(new ErrDiffReg(config.ddrWidth)))
+
   // Stages connection
   imageDumpR.io.out       <> core.io.in
   core.io.out             <> imageDumpW.io.in
   imageDumpW.io.out.ready := imageDumpR.io.in.ready
+  // Other connection
+  io.read_r  <> ctrlReg.io.read
+  io.write_r <> ctrlReg.io.write
   // unset ports
   core.io.img <> DontCare
 
   // Registers
-  val triggered   = RegInit(false.B)
   val indicator_r = RegInit(false.B)
-  when(!io.extn_ready) { triggered := true.B }
+  val start_r     = RegInit(false.B)
+  val end_r       = RegInit(false.B)
   // Trigger the system
-  imageDumpR.io.in.valid := !io.extn_ready && !triggered
+  imageDumpR.io.in.valid := EdgeDetector(ctrlReg.io.reg.active)
 
   /*
    * External Ports
@@ -70,11 +78,18 @@ class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
       io.img <> core.io.img
       when(core.io.out.fire) { state := sWrite }
     }
-    // No need to turn around to `sRead`
+    is(sWrite) {
+      when(imageDumpW.io.out.fire) { state := sRead }
+    }
   }
 
-  when(imageDumpW.io.out.fire) {
-    indicator_r := true.B
-  }
+  when(imageDumpR.io.out.fire) { start_r := true.B }
+  when(core.io.out.fire) { end_r := true.B }
+  when(imageDumpW.io.out.fire) { indicator_r := true.B }
+  // State Registers
+  ctrlReg.io.reg.done  := indicator_r
+  ctrlReg.io.reg.start := start_r
+  ctrlReg.io.reg.end   := end_r
+
   io.indicator := indicator_r
 }
