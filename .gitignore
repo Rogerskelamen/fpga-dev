@@ -17,5 +17,6 @@
 !*.ps1
 !*.py
 !Makefile
+!README.md
 !.gtkwave.config
 !.scalafmt.conf
