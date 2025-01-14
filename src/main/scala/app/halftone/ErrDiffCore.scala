@@ -3,7 +3,7 @@ package app.halftone
 import app.halftone.errdiff.{ErrorOut, PixelGet, ThreshCalc, WriteBinary}
 import chisel3._
 import chisel3.util.{Counter, Decoupled}
-import tools.bus.BramNativePortFull
+import tools.bus.BramNativeDualPorts
 import utils.EdgeDetector
 
 case class ErrDiffConfig(
@@ -19,19 +19,11 @@ case class ErrDiffConfig(
   bramAddrBits:             Int = 18)
 extends HalftoneConfig(pixelWidth, ddrBaseAddr, ddrWidth, imageRow, imageCol)
 
-/** Bram Port A: serve for writing
-  * Bram Port B: Serve for reading
-  */
-class BramNativePorts(val bramDataBits: Int, val bramAddrBits: Int) extends Bundle {
-  val pb = Flipped(new BramNativePortFull(bramDataBits, bramAddrBits))
-  val pa = Flipped(new BramNativePortFull(bramDataBits, bramAddrBits))
-}
-
 class ErrDiffCore(config: ErrDiffConfig) extends Module {
   val io = FlatIO(new Bundle {
     val in    = Flipped(Decoupled())
-    val img   = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
-    val cache = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val img   = new BramNativeDualPorts(config.bramDataBits, config.bramAddrBits)
+    val cache = new BramNativeDualPorts(config.bramDataBits, config.bramAddrBits)
     val out   = Decoupled()
   })
 

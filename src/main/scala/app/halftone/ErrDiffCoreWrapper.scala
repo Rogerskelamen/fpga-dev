@@ -3,7 +3,7 @@ package app.halftone
 import app.halftone.errdiff.{ErrDiffReg, ImageDumpRead, ImageDumpWrite}
 import chisel3._
 import chisel3.util.{Enum, is, switch}
-import tools.bus.{SimpleDataPortR, SimpleDataPortW}
+import tools.bus.{BramNativeDualPorts, SimpleDataPortR, SimpleDataPortW}
 import utils.{EdgeDetector, FPGAModule}
 
 /** Bram Port A: serve for writing <br>
@@ -13,8 +13,8 @@ class ErrDiffCoreWrapper(config: ErrDiffConfig) extends FPGAModule {
   val io = FlatIO(new Bundle {
     val read    = new SimpleDataPortR(awidth = config.ddrWidth, dwidth = config.ddrWidth)
     val write   = new SimpleDataPortW(awidth = config.ddrWidth, dwidth = config.ddrWidth)
-    val img     = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
-    val cache   = new BramNativePorts(config.bramDataBits, config.bramAddrBits)
+    val img     = new BramNativeDualPorts(config.bramDataBits, config.bramAddrBits)
+    val cache   = new BramNativeDualPorts(config.bramDataBits, config.bramAddrBits)
     val read_r  = Flipped(new SimpleDataPortR(config.ddrWidth, config.ddrWidth))
     val write_r = Flipped(new SimpleDataPortW(config.ddrWidth, config.ddrWidth))
 //    val extn_ready = Input(Bool())
