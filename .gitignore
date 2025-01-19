@@ -5,6 +5,7 @@
 .idea
 .bsp
 .metals
+.bloop
 /verilog-gen/
 /target/
 /build/
